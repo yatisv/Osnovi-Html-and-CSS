@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Урок 7: Изображения, ссылки и кнопки в CSS</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --primary: #4361ee; --primary-hover: #3a56d4; --success: #2ec4b6;
+            --warning: #ff9f1c; --danger: #e63946; --text-dark: #212529; --border: #dee2e6;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.7; color: var(--text-dark);  background: radial-gradient(circle, #0e0594 23%, #041439 41%, #012941 60%, #2b0349 89%); }
+        
+        .no-select { user-select: none; -webkit-user-select: none; }
+        .CodeMirror, .input-answer, textarea, pre, code { user-select: text !important; -webkit-user-select: text !important; }
+
+        .header { background: linear-gradient(135deg, #270471 0%, #05318a 100%);color: white; padding: 30px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .header h1 { font-size: 38px; margin-bottom: 10px; }
+        .header p { font-size: 20px; opacity: 0.9; }
+        .breadcrumb { background: white; padding: 15px 0; border-bottom: 1px solid var(--border); margin-bottom: 30px; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+        
+        .section { background: white; border-radius: 12px; padding: 35px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .section h2 { color: var(--primary); border-left: 5px solid var(--primary); padding-left: 15px; margin-bottom: 25px; font-size: 26px; }
+        .section h3 { color: #343a40; margin: 30px 0 15px; font-size: 20px; border-bottom: 2px solid #f8f9fa; padding-bottom: 10px; }
+        .section h4 { color: #495057; margin: 20px 0 10px; font-size: 18px; }
+        .section p { margin-bottom: 15px; }
+        
+        .tag { background: #e9ecef; color: #d63384; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; display: inline-block; }
+        
+        .analogy-box, .tip-box, .warning-box { padding: 20px; border-radius: 0 8px 8px 0; margin: 20px 0; }
+        .analogy-box { background: #e7f5ff; border-left: 5px solid var(--primary); }
+        .tip-box { background: #d1e7dd; border-left: 5px solid var(--success); }
+        .warning-box { background: #f8d7da; border-left: 5px solid var(--danger); }
+        
+        .practice-nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .practice-btn { background: white; border: 2px solid var(--primary); color: var(--primary); padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s; text-align: center; }
+        .practice-btn:hover, .practice-btn.active { background: var(--primary); color: white; transform: translateY(-2px); }
+        
+        .trainer-container { border: 2px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 20px; transition: all 0.3s; background: white; }
+        .trainer-header { background: #343a40; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .task-info { background: #fff3cd; border: 2px solid var(--warning); padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .task-info h3 { color: #856404; margin-bottom: 10px; }
+        
+        .workspace { display: flex; height: 450px; position: relative; }
+        .editors-pane { width: 50%; display: flex; flex-direction: column; border-right: 2px solid #44475a; flex-shrink: 0; }
+        .editor-container { display: flex; flex-direction: column; overflow: hidden; }
+        .editor-label { padding: 8px 12px; background: #44475a; font-size: 12px; font-weight: bold; color: #f8f8f2; text-transform: uppercase; flex-shrink: 0; }
+        .CodeMirror { flex: 1; height: 100% !important; font-size: 14px; }
+        
+        .resizer-v { width: 8px; background: #343a40; cursor: col-resize; display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 10; transition: background 0.2s; }
+        .resizer-v:hover, .resizer-v.active { background: var(--primary); }
+        .resizer-v::after { content: "⋮"; color: #f8f8f2; font-size: 14px; }
+
+        .resizer-h { height: 8px; background: #343a40; cursor: row-resize; display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 10; transition: background 0.2s; }
+        .resizer-h:hover, .resizer-h.active { background: var(--primary); }
+        .resizer-h::after { content: "⋯"; color: #f8f8f2; font-size: 14px; }
+
+        .preview-pane { flex: 1; background: white; min-width: 200px; }
+        iframe { width: 100%; height: 100%; border: none; }
+        
+        .btn { background: var(--success); color: white; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: all 0.3s; }
+        .btn:hover { background: #25a99d; transform: translateY(-1px); }
+        .btn-secondary { background: var(--warning); color: #212529; }
+        .btn-secondary:hover { background: #e8900e; }
+        .btn-check { background: var(--primary); }
+        .btn-check:hover { background: var(--primary-hover); }
+        .btn-fullscreen { background: #6c757d; color: white; }
+        .btn-fullscreen:hover { background: #5a6268; }
+        
+        .code-checker { background: #f8f9fa; padding: 15px 20px; border-top: 1px solid var(--border); transition: background 0.3s; }
+        .code-checker.all-pass { background: #d1e7dd; border-top: 2px solid var(--success); }
+        .checker-title { font-weight: bold; margin-bottom: 12px; color: var(--text-dark); font-size: 15px; }
+        .check-item { display: flex; align-items: center; margin-bottom: 6px; font-size: 14px; }
+        .check-icon { margin-right: 10px; font-weight: bold; width: 20px; text-align: center; flex-shrink: 0; }
+        .check-pass { color: var(--success); }
+        .check-fail { color: var(--danger); }
+
+        .quiz-question { margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid var(--primary); }
+        .quiz-options label { display: block; padding: 12px 15px; margin: 8px 0; background: white; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .quiz-options label:hover { background: #e9ecef; border-color: var(--primary); font-weight: bold;}
+        .input-answer { width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 6px; font-size: 14px; font-family: monospace; margin-top: 10px; transition: all 0.2s;  }
+        
+        #quizForm.locked { opacity: 0.7; pointer-events: none; }
+        #quizForm.locked .btn-final { pointer-events: auto; background-color: #6c757d !important; cursor: not-allowed !important; transform: none !important; }
+        #quizForm.locked .quiz-options label { cursor: not-allowed; background: #e9ecef; border-color: #dee2e6; }
+
+        .final-result-box { margin-top: 30px; padding: 30px; border-radius: 12px; text-align: center; background: radial-gradient(circle, #00c9ff 0%, #9790fe 100%); border: 3px solid var(--primary); display: none; }
+        .score-breakdown { display: flex; justify-content: space-around; margin: 20px 0; flex-wrap: wrap; gap: 15px; }
+        .score-item { background: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); min-width: 140px; }
+        .score-item h4 { color: #6c757d; font-size: 14px; margin-bottom: 5px; }
+        .score-item .value { font-size: 28px; font-weight: bold; color: var(--primary); }
+        .final-grade { font-size: 36px; font-weight: bold; color: var(--success); margin-top: 15px; }
+        
+        .progress-bar { background: var(--border); height: 30px; border-radius: 15px; overflow: hidden; margin: 20px 0; }
+        .progress-fill { background: linear-gradient(90deg, var(--success), var(--primary)); height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; transition: width 0.5s; }
+        .footer { background: #343a40; color: white; text-align: center; padding: 30px 0; margin-top: 50px; }
+        .hide { display: none; }
+
+        .list-example { background: white; border: 2px solid var(--border); border-radius: 8px; padding: 20px; margin: 15px 0; }
+        .list-example h5 { color: var(--primary); margin-bottom: 15px; font-size: 16px; font-weight: bold; }
+
+        .css-preview {
+            background: #ffffff; border: 2px solid var(--border); border-radius: 8px;
+            padding: 25px; margin: 15px 0 25px 0; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .css-preview::before {
+            content: "👁️ Результат в браузере:"; position: absolute; top: -12px; left: 15px;
+            background: var(--primary); color: white; padding: 4px 12px; border-radius: 4px;
+            font-size: 12px; font-weight: bold; letter-spacing: 0.5px;
+        }
+
+        .visual-target {
+            background: #ffffff; border: 2px dashed var(--primary); border-radius: 8px;
+            padding: 20px; margin-top: 15px; text-align: left;
+        }
+        .visual-target-label {
+            display: block; font-size: 12px; font-weight: bold; color: var(--primary);
+            margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        .trainer-container:fullscreen, .trainer-container:-webkit-full-screen {
+            width: 100vw; height: 100vh; border-radius: 0; border: none; display: flex; flex-direction: column; z-index: 9999;
+        }
+        .trainer-container:fullscreen .workspace, .trainer-container:-webkit-full-screen .workspace {
+            flex: 1; height: 100% !important;
+        }
+
+        pre[class*="language-"], code[class*="language-"], pre code {
+            background-color: #282a36 !important; color: #f8f8f2 !important; text-shadow: none !important;
+            border-radius: 8px; border-left: 4px solid var(--primary);
+        }
+        .token, .token.punctuation, .token.operator, .token.entity, .token.url, .language-css .token.string, .style .token.string {
+            background-color: transparent !important;
+        }
+        .token.comment { color: #6272a4 !important; font-style: italic; }
+        .token.property { color: #8be9fd !important; }
+        .token.selector { color: #50fa7b !important; }
+        .token.value { color: #f1fa8c !important; }
+        .token.pseudo-class { color: #ff79c6 !important; }
+        
+        @media (max-width: 768px) { 
+            .workspace { flex-direction: column; height: auto; } 
+            .editors-pane, .preview-pane { width: 100% !important; height: 300px; }
+            .resizer-v { width: 100%; height: 8px; cursor: row-resize; }
+            .resizer-v::after { content: "⋯"; }
+            .score-breakdown { flex-direction: column; align-items: center; }
+        }
+		input[type="radio"] {
+  margin-right: 10px;
+  
+}
+/* === ПЛАВАЮЩАЯ КНОПКА "НА ГЛАВНУЮ" === */
+.back-to-home-btn {
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    z-index: 9999; /* Чтобы кнопка была поверх всех элементов */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #e34f26 0%, #1572b6 100%); /* Цвета HTML и CSS */
+    color: white;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    box-shadow: 0 4px 15px rgba(21, 114, 182, 0.4);
+    transition: all 0.3s ease;
+    opacity: 0.9;
+}
+
+.back-to-home-btn:hover {
+    opacity: 1;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(21, 114, 182, 0.6);
+}
+
+/* Адаптация для мобильных устройств: оставляем только иконку */
+@media (max-width: 768px) {
+    .back-to-home-btn {
+        right: 20px;
+        bottom: 20px;
+        padding: 14px;
+        border-radius: 50%;
+    }
+    .back-to-home-btn .btn-text {
+        display: none; /* Скрываем текст на маленьких экранах */
+    }
+}
+    </style>
+</head>
+<body class="no-select">
+
+    <div class="header">
+        <div class="container">
+            <h1>🌐 Основы HTML и CSS</h1>
+            <p>Тема 7: Изображения, ссылки и кнопки в CSS</p>
+        </div>
+    </div>
+    
+    <div class="breadcrumb">
+        <div class="container">
+            <a href="#">🏠 Главная</a> / <span>Урок 7: Изображения, ссылки и кнопки</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- ТЕОРИЯ -->
+        <section class="section" id="theory">
+            <h2>📚 1. Теоретический материал</h2>
+            
+            <h3>1. Стилизация ссылок (&lt;a&gt;)</h3>
+            <p>Ссылки имеют несколько состояний, которые можно стилизовать с помощью <strong>псевдоклассов</strong>. Псевдоклассы добавляются к селектору через двоеточие.</p>
+            <ul>
+                <li><span class="tag">:link</span> — непосещенная ссылка (по умолчанию).</li>
+                <li><span class="tag">:visited</span> — посещенная ссылка.</li>
+                <li><span class="tag">:hover</span> — при наведении курсора мыши.</li>
+                <li><span class="tag">:active</span> — в момент нажатия кнопки мыши.</li>
+            </ul>
+            <div class="list-example">
+                <h5>Пример стилизации ссылки:</h5>
+                <div class="css-preview">
+                    <a href="#" style="color: #4361ee; text-decoration: none; font-weight: bold; border-bottom: 2px solid transparent; transition: 0.3s;" onmouseover="this.style.color='#e63946'; this.style.borderBottomColor='#e63946'" onmouseout="this.style.color='#4361ee'; this.style.borderBottomColor='transparent'">Наведи на меня</a>
+                </div>
+                <pre><code class="language-css">.my-link {
+    color: #4361ee;
+    text-decoration: none; /* Убираем подчеркивание */
+    border-bottom: 2px solid transparent; 
+    transition: 0.3s; /* Плавность */
+}
+.my-link:hover {   /* изменения цвета при наведении */
+    color: #e63946;
+    border-bottom-color: #e63946;
+}</code></pre>
+            </div>
+
+            <h3>2. Стилизация изображений (&lt;img&gt;)</h3>
+            <p>Изображения в CSS ведут себя как строчно-блочные элементы. Мы можем управлять их размером, формой и внешним видом.</p>
+            
+            <h4>Размеры и скругление</h4>
+            <p>Свойства <span class="tag">width</span> и <span class="tag">height</span> задают размеры. Свойство <span class="tag">border-radius</span> позволяет скруглять углы. Значение <code>50%</code> делает изображение идеально круглым (при равных ширине и высоте).</p>
+            <div class="list-example">
+                <h5>Пример круглого изображения:</h5>
+                <div class="css-preview">
+                    <img src="https://s10.iimage.su/s/11/uE5vsc2x7k8GUAR5a6dDqLsWUhgzZn2FqB71H1WsW.jpg" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 5px solid #2ec4b6;" alt="Avatar">
+                </div>
+                <pre><code class="language-css"> .avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover; /* Чтобы картинка не сплющивалась */
+	border: 5px solid #2ec4b6; /* цвет  и толщина рамки  */
+}</code></pre>
+            </div>
+
+            <h4>Свойство object-fit</h4>
+            <p>Когда мы задаем изображению жесткие <code>width</code> и <code>height</code>, оно может исказиться. Свойство <span class="tag">object-fit</span> решает эту проблему:</p>
+            <ul>
+                <li><code>cover</code> — масштабирует изображение, заполняя весь контейнер, лишнее обрезается (пропорции сохраняются).</li>
+                <li><code>contain</code> — масштабирует изображение, чтобы оно целиком поместилось в контейнер.</li>
+            </ul>
+
+            <h3>3. Стилизация кнопок (&lt;button&gt;)</h3>
+            <p>Кнопки по умолчанию выглядят скучно, но с помощью CSS их можно превратить в красивые интерактивные элементы. Основные свойства для стилизации кнопок:</p>
+            <ul>
+                <li><span class="tag">background-color</span> — цвет фона кнопки.</li>
+                <li><span class="tag">border</span> — граница (часто используют <code>border: none;</code> для удаления стандартной серой рамки).</li>
+                <li><span class="tag">padding</span> — внутренние отступы, делающие кнопку крупнее и удобнее для нажатия.</li>
+                <li><span class="tag">border-radius</span> — скругление углов.</li>
+                <li><span class="tag">cursor: pointer</span> — меняет курсор на "руку" при наведении, показывая, что элемент кликабельный.</li>
+                <li><span class="tag">:hover</span> — псевдокласс для изменения стиля при наведении (например, затемнение фона).</li>
+            </ul>
+            <div class="list-example">
+                <h5>Пример стильной кнопки:</h5>
+                <div class="css-preview">
+                    <button style="background-color: #4361ee; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s;" onmouseover="this.style.backgroundColor='#3a56d4'" onclick="this.style.backgroundColor='#00BFFF'">Нажми меня</button>
+                </div>
+                <pre><code class="language-css">.my-button {
+    background-color: #00BFFF;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.my-button:active { /* изменения цвета в момент нажатия кнопки*/
+    background-color: #3a56d4;
+}</code></pre>
+            </div>
+
+            <div class="tip-box">
+                <h4>💡 Профессиональный совет:</h4>
+                <p>Чтобы задать ссылке отступы (<code>padding</code>) и сделать из нее кнопку, обязательно добавьте ей свойство <code>display: inline-block;</code> или <code>display: block;</code>. По умолчанию ссылка является строчным элементом, и вертикальные отступы к ней не применяются.</p>
+            </div>
+        </section>
+
+        <!-- ПРАКТИКА -->
+		<section class="section" id="practice">
+        <h2 style="margin: 30px 0 20px; color: var(--primary);">💻 2. Практические работы</h2>
+        <p style="margin-bottom: 20px;">Посмотрите на <strong>визуальный образец</strong> в задании и напишите CSS-код, чтобы добиться точно такого же результата. За каждое выполненное задание вы получите <strong>2 балла</strong>.</p>
+        
+        <div class="practice-nav">
+            <button class="practice-btn active" onclick="showPractice(1)">📝 Работа 1<br><small>Стилизация ссылки</small></button>
+            <button class="practice-btn" onclick="showPractice(2)">📝 Работа 2<br><small>Круглое изображение</small></button>
+            <button class="practice-btn" onclick="showPractice(3)">📝 Работа 3<br><small>Object-fit</small></button>
+            <button class="practice-btn" onclick="showPractice(4)">📝 Работа 4<br><small>Стилизация кнопки</small></button>
+            <button class="practice-btn" onclick="showPractice(5)">📝 Работа 5<br><small>Творческое</small></button>
+        </div></section>
+
+        <!-- РАБОТА 1 -->
+        <section class="section practice-section" id="practice1">
+            <h2>Практическая работа 1: Стилизация ссылки</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <p>Сделайте ссылку с классом <code>.my-link</code> синей (<code>#4361ee</code>), без подчеркивания, а при наведении курсора (<code>:hover</code>) она должна становиться красной (<code>#e63946</code>).</p>
+                <div class="visual-target">
+                    <span class="visual-target-label">Цель:</span>
+                    <a href="#" class="my-link-target" style="color: #4361ee; text-decoration: none; font-family: sans-serif; font-weight: bold;" onmouseover="this.style.color='#e63946'" onmouseout="this.style.color='#4361ee'">Наведи на меня</a>
+                </div>
+            </div>
+            <div class="trainer-container" id="trainer1">
+                <div class="trainer-header">
+                    <span>🛠️ Редактор кода - Работа 1</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="showHint(1)">💡 Подсказка</button>
+                        <button class="btn btn-check" onclick="checkCode(1)">🔍 Проверить код</button>
+                        <button class="btn" onclick="updatePreview(1)">▶ Запустить</button>
+                        <button class="btn btn-fullscreen" onclick="toggleFullscreen('trainer1')">⛶ На весь экран</button>
+                    </div>
+                </div>
+                <div class="workspace" id="workspace1">
+                    <div class="editors-pane" id="editors-pane1">
+                        <div class="editor-container" id="html-container1" style="height: 50%;">
+                            <div class="editor-label">HTML</div>
+                            <textarea id="html1"></textarea>
+                        </div>
+                        <div class="resizer-h" id="resizer-h1"></div>
+                        <div class="editor-container" id="css-container1" style="flex: 1;">
+                            <div class="editor-label">CSS</div>
+                            <textarea id="css1"></textarea>
+                        </div>
+                    </div>
+                    <div class="resizer-v" id="resizer-v1"></div>
+                    <div class="preview-pane"><iframe id="preview1" sandbox="allow-scripts allow-same-origin"></iframe></div>
+                </div>
+                <div class="code-checker" id="checker1"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint1" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> Используйте <code>text-decoration: none;</code> для <code>.my-link</code> и <code>color: #e63946;</code> для <code>.my-link:hover</code>.</div>
+        </section>
+
+        <!-- РАБОТА 2 -->
+        <section class="section practice-section hide" id="practice2">
+            <h2>Практическая работа 2: Круглое изображение</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <p>Сделайте изображение с классом <code>.avatar</code> размером 120x120 пикселей и идеально круглым. Используйте <code>object-fit: cover</code>, чтобы оно не исказилось. ссылка на изображение: в нутри кода в тренажере</p>
+                <div class="visual-target">
+                    <span class="visual-target-label">Цель:</span>
+                    <img src="https://s10.iimage.su/s/11/uE5vsc2x7k8GUAR5a6dDqLsWUhgzZn2FqB71H1WsW.jpg" class="avatar-target" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #2ec4b6;" alt="Avatar">
+                </div>
+            </div>
+            <div class="trainer-container" id="trainer2">
+                <div class="trainer-header">
+                    <span>🛠️ Редактор кода - Работа 2</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="showHint(2)">💡 Подсказка</button>
+                        <button class="btn btn-check" onclick="checkCode(2)">🔍 Проверить код</button>
+                        <button class="btn" onclick="updatePreview(2)">▶ Запустить</button>
+                        <button class="btn btn-fullscreen" onclick="toggleFullscreen('trainer2')">⛶ На весь экран</button>
+                    </div>
+                </div>
+                <div class="workspace" id="workspace2">
+                    <div class="editors-pane" id="editors-pane2">
+                        <div class="editor-container" id="html-container2" style="height: 50%;">
+                            <div class="editor-label">HTML</div>
+                            <textarea id="html2"></textarea>
+                        </div>
+                        <div class="resizer-h" id="resizer-h2"></div>
+                        <div class="editor-container" id="css-container2" style="flex: 1;">
+                            <div class="editor-label">CSS</div>
+                            <textarea id="css2"></textarea>
+                        </div>
+                    </div>
+                    <div class="resizer-v" id="resizer-v2"></div>
+                    <div class="preview-pane"><iframe id="preview2" sandbox="allow-scripts allow-same-origin"></iframe></div>
+                </div>
+                <div class="code-checker" id="checker2"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint2" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> Задайте <code>width: 120px;</code>, <code>height: 120px;</code>, <code>border-radius: 50%;</code> и <code>object-fit: cover;</code> для селектора <code>.avatar</code>.</div>
+        </section>
+
+        <!-- РАБОТА 3 -->
+        <section class="section practice-section hide" id="practice3">
+            <h2>Практическая работа 3: Object-fit</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <p>Задайте изображению с классом <code>.fit-img</code> размеры 300px на 150px и используйте свойство, которое заставит его заполнить этот блок, обрезав лишнее, но сохранив пропорции.</p>
+                <div class="visual-target">
+                    <span class="visual-target-label">Цель:</span>
+                    <img src="https://s10.iimage.su/s/11/u6ZrMaKx13q8k3viVnGDzq7IpwONDB6178VmUQWYa.jpg" class="fit-img-target" style="width: 300px; height: 150px; object-fit: cover; border-radius: 8px;" alt="Fit example">
+                </div>
+            </div>
+            <div class="trainer-container" id="trainer3">
+                <div class="trainer-header">
+                    <span>🛠️ Редактор кода - Работа 3</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="showHint(3)">💡 Подсказка</button>
+                        <button class="btn btn-check" onclick="checkCode(3)">🔍 Проверить код</button>
+                        <button class="btn" onclick="updatePreview(3)">▶ Запустить</button>
+                        <button class="btn btn-fullscreen" onclick="toggleFullscreen('trainer3')">⛶ На весь экран</button>
+                    </div>
+                </div>
+                <div class="workspace" id="workspace3">
+                    <div class="editors-pane" id="editors-pane3">
+                        <div class="editor-container" id="html-container3" style="height: 50%;">
+                            <div class="editor-label">HTML</div>
+                            <textarea id="html3"></textarea>
+                        </div>
+                        <div class="resizer-h" id="resizer-h3"></div>
+                        <div class="editor-container" id="css-container3" style="flex: 1;">
+                            <div class="editor-label">CSS</div>
+                            <textarea id="css3"></textarea>
+                        </div>
+                    </div>
+                    <div class="resizer-v" id="resizer-v3"></div>
+                    <div class="preview-pane"><iframe id="preview3" sandbox="allow-scripts allow-same-origin"></iframe></div>
+                </div>
+                <div class="code-checker" id="checker3"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint3" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> Используйте свойство <code>object-fit: cover;</code> вместе с <code>width: 300px;</code> и <code>height: 150px;</code>.</div>
+        </section>
+
+        <!-- РАБОТА 4 -->
+        <section class="section practice-section hide" id="practice4">
+            <h2>Практическая работа 4: Стилизация кнопки</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <p>Превратите стандартную кнопку с классом <code>.cool-btn</code> в красивую: зеленый фон (<code>#2ec4b6</code>), белый текст, без границы, внутренние отступы <code>12px 24px</code>, скругление <code>8px</code>. При наведении (<code>:hover</code>) фон должен меняться на <code>#25a99d</code>.</p>
+                <div class="visual-target">
+                    <span class="visual-target-label">Цель:</span>
+                    <button class="cool-btn-target" style="background-color: #2ec4b6; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; font-family: sans-serif;" onmouseover="this.style.backgroundColor='#25a99d'" onmouseout="this.style.backgroundColor='#2ec4b6'">Отправить</button>
+                </div>
+            </div>
+            <div class="trainer-container" id="trainer4">
+                <div class="trainer-header">
+                    <span>🛠️ Редактор кода - Работа 4</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="showHint(4)">💡 Подсказка</button>
+                        <button class="btn btn-check" onclick="checkCode(4)">🔍 Проверить код</button>
+                        <button class="btn" onclick="updatePreview(4)">▶ Запустить</button>
+                        <button class="btn btn-fullscreen" onclick="toggleFullscreen('trainer4')">⛶ На весь экран</button>
+                    </div>
+                </div>
+                <div class="workspace" id="workspace4">
+                    <div class="editors-pane" id="editors-pane4">
+                        <div class="editor-container" id="html-container4" style="height: 50%;">
+                            <div class="editor-label">HTML</div>
+                            <textarea id="html4"></textarea>
+                        </div>
+                        <div class="resizer-h" id="resizer-h4"></div>
+                        <div class="editor-container" id="css-container4" style="flex: 1;">
+                            <div class="editor-label">CSS</div>
+                            <textarea id="css4"></textarea>
+                        </div>
+                    </div>
+                    <div class="resizer-v" id="resizer-v4"></div>
+                    <div class="preview-pane"><iframe id="preview4" sandbox="allow-scripts allow-same-origin"></iframe></div>
+                </div>
+                <div class="code-checker" id="checker4"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint4" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> Вам понадобятся: <code>background-color: #2ec4b6;</code>, <code>color: white;</code>, <code>border: none;</code>, <code>padding: 12px 24px;</code>, <code>border-radius: 8px;</code> и псевдокласс <code>.cool-btn:hover</code>.</div>
+        </section>
+
+        <!-- РАБОТА 5 -->
+        <section class="section practice-section hide" id="practice5">
+            <h2>Практическая работа 5: Творческое задание</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <p>Создайте карточку с изображением и кнопкой. Изображение (класс <code>.card-img</code>) должно иметь скругленные углы (<code>8px</code>) и ширину 100%. Кнопка под ним (класс <code>.card-btn</code>) должна быть синей, без подчеркивания и с белым текстом.</p>
+                <div class="visual-target">
+                    <span class="visual-target-label">Пример цели:</span>
+                    <div style="font-family: sans-serif; max-width: 250px;">
+                        <img src="https://s10.iimage.su/s/11/uMGly3bxZGCA1esVrTtan9R7oDLha5L2cXFrw8arV.jpg" class="card-img-target" style="width: 100%; border-radius: 8px; margin-bottom: 10px;" alt="Card">
+                        <button class="card-btn-target" style="background: #4361ee; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; width: 100%;">Читать далее</button>
+                    </div>
+                </div>
+            </div>
+            <div class="trainer-container" id="trainer5">
+                <div class="trainer-header">
+                    <span>🛠️ Редактор кода - Работа 5</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="showHint(5)">💡 Подсказка</button>
+                        <button class="btn btn-check" onclick="checkCode(5)">🔍 Проверить код</button>
+                        <button class="btn" onclick="updatePreview(5)">▶ Запустить</button>
+                        <button class="btn btn-fullscreen" onclick="toggleFullscreen('trainer5')">⛶ На весь экран</button>
+                    </div>
+                </div>
+                <div class="workspace" id="workspace5">
+                    <div class="editors-pane" id="editors-pane5">
+                        <div class="editor-container" id="html-container5" style="height: 50%;">
+                            <div class="editor-label">HTML</div>
+                            <textarea id="html5"></textarea>
+                        </div>
+                        <div class="resizer-h" id="resizer-h5"></div>
+                        <div class="editor-container" id="css-container5" style="flex: 1;">
+                            <div class="editor-label">CSS</div>
+                            <textarea id="css5"></textarea>
+                        </div>
+                    </div>
+                    <div class="resizer-v" id="resizer-v5"></div>
+                    <div class="preview-pane"><iframe id="preview5" sandbox="allow-scripts allow-same-origin"></iframe></div>
+                </div>
+                <div class="code-checker" id="checker5"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint5" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> Задайте <code>.card-img { border-radius: 8px; width: 100%; }</code> и <code>.card-btn { background: #4361ee; color: white; border: none; padding: 10px 20px; border-radius: 6px; }</code>.</div>
+        </section>
+
+        <!-- ТЕСТ -->
+        <section class="section" id="test">
+            <h2>📝 3. Проверь себя (Тест)</h2>
+            <p style="margin-bottom: 20px;">Ответьте на 15 вопросов. За каждый правильный ответ вы получите <strong>1 балл</strong>. <span style="color: var(--danger); font-weight: bold;">Внимание: после проверки изменить ответы будет невозможно!</span></p>
+            <form id="quizForm"><strong>
+                <div class="quiz-question"><h3>1. Какое свойство убирает подчеркивание у ссылки?</h3><div class="quiz-options"><label><input type="radio" name="q1" value="correct">text-decoration: none;</label><label><input type="radio" name="q1" value="wrong">text-style: no-underline;</label><label><input type="radio" name="q1" value="wrong">underline: false;</label></div></div>
+                <div class="quiz-question"><h3>2. Какой псевдокласс срабатывает при наведении курсора мыши на элемент?</h3><div class="quiz-options"><label><input type="radio" name="q2" value="wrong">:active</label><label><input type="radio" name="q2" value="correct">:hover</label><label><input type="radio" name="q2" value="wrong">:focus</label></div></div>
+                <div class="quiz-question"><h3>3. Напишите свойство для скругления изображения в идеальный круг.</h3><input type="text" class="input-answer" name="q3" placeholder=""></div>
+                <div class="quiz-question"><h3>4. Какое значение object-fit масштабирует изображение, заполняя весь контейнер и обрезая лишнее?</h3><div class="quiz-options"><label><input type="radio" name="q4" value="wrong">contain</label><label><input type="radio" name="q4" value="correct">cover</label><label><input type="radio" name="q4" value="wrong">fill</label></div></div>
+                <div class="quiz-question"><h3>5. Напишите псевдокласс для посещенной ссылки.</h3><input type="text" class="input-answer" name="q5" placeholder=""></div>
+                <div class="quiz-question"><h3>6. Какое свойство меняет общую прозрачность элемента?</h3><div class="quiz-options"><label><input type="radio" name="q6" value="wrong">visibility</label><label><input type="radio" name="q6" value="correct">opacity</label><label><input type="radio" name="q6" value="wrong">filter</label></div></div>
+                <div class="quiz-question"><h3>7. Какое значение display нужно задать ссылке, чтобы к ней применялись вертикальные отступы (padding)?</h3><div class="quiz-options"><label><input type="radio" name="q7" value="wrong">inline</label><label><input type="radio" name="q7" value="correct">inline-block</label><label><input type="radio" name="q7" value="wrong">table-cell</label></div></div>
+                <div class="quiz-question"><h3>8. Напишите CSS-фильтр для перевода изображения в черно-белый режим.</h3><input type="text" class="input-answer" name="q8" placeholder=""></div>
+                <div class="quiz-question"><h3>9. Что произойдет с изображением, если задать ему width: 100% и height: auto?</h3><div class="quiz-options"><label><input type="radio" name="q9" value="wrong">Оно растянется и исказится</label><label><input type="radio" name="q9" value="correct">Оно сохранит свои пропорции</label><label><input type="radio" name="q9" value="wrong">Оно станет невидимым</label></div></div>
+                <div class="quiz-question"><h3>10. Какой псевдокласс применяется к ссылке в момент нажатия на нее кнопкой мыши?</h3><div class="quiz-options"><label><input type="radio" name="q10" value="correct">:active</label><label><input type="radio" name="q10" value="wrong">:hover</label><label><input type="radio" name="q10" value="wrong">:target</label></div></div>
+                <div class="quiz-question"><h3>11. Какое свойство добавляет тень к изображению или блоку?</h3><div class="quiz-options"><label><input type="radio" name="q11" value="wrong">text-shadow</label><label><input type="radio" name="q11" value="correct">box-shadow</label><label><input type="radio" name="q11" value="wrong">drop-shadow</label></div></div>
+                <div class="quiz-question"><h3>12. Напишите значение свойства transition, чтобы изменение цвета происходило плавно за 0.3 секунды.</h3><input type="text" class="input-answer" name="q12" placeholder=""></div>
+                <div class="quiz-question"><h3>13. Верно ли, что псевдокласс :hover работает только на ссылках (&lt;a&gt;)?</h3><div class="quiz-options"><label><input type="radio" name="q13" value="wrong">Да, только на ссылках</label><label><input type="radio" name="q13" value="correct">Нет, на любых элементах</label><label><input type="radio" name="q13" value="wrong">Только на кнопках</label></div></div>
+                <div class="quiz-question"><h3>14. Какое свойство позволяет применить размытие к изображению?</h3><div class="quiz-options"><label><input type="radio" name="q14" value="wrong">opacity: blur;</label><label><input type="radio" name="q14" value="correct">filter: blur(5px);</label><label><input type="radio" name="q14" value="wrong">blur: 5px;</label></div></div>
+                <div class="quiz-question"><h3>15. Напишите свойство, которое управляет тем, как содержимое элемента (например, картинки) вписывается в его блок.</h3><input type="text" class="input-answer" name="q15" placeholder=""></div></strong>
+
+                <button type="button" class="btn btn-final" onclick="calculateFinalGrade()" style="width: 100%; padding: 15px; font-size: 18px; margin-top: 20px;">🏆 Рассчитать итоговую оценку</button>
+            </form>
+            
+            <div id="finalResult" class="final-result-box">
+                <h3 style="color: var(--primary); margin-bottom: 20px;">📊 Результаты выполнения урока</h3>
+                <div class="score-breakdown">
+                    <div class="score-item"><h4>Практические работы</h4><div class="value" id="practiceScoreDisplay">0 / 10</div></div>
+                    <div class="score-item"><h4>Тест</h4><div class="value" id="testScoreDisplay">0 / 15</div></div>
+                    <div class="score-item"><h4>Итого баллов</h4><div class="value" id="totalScoreDisplay">0 / 25</div></div>
+                </div>
+                <div class="progress-bar"><div id="progressFill" class="progress-fill" style="width: 0%">0%</div></div>
+                <div class="final-grade" id="finalGradeDisplay">Оценка: 2</div>
+                <p id="finalMessage" style="margin-top: 15px; color: #6c757d;"></p>
+            </div>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 Информатика 8 класс | Основы HTML и CSS</p>
+            <p>МКОУ Северная средняя школа | Учитель: Ятис В.В.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+
+    <script>
+        // ==========================================
+        // 1. ЗАЩИТА ОТ СПИСЫВАНИЯ
+        // ==========================================
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('copy', event => event.preventDefault());
+        document.addEventListener('cut', event => event.preventDefault());
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i'))) e.preventDefault();
+        });
+
+        // ==========================================
+        // 2. ИНИЦИАЛИЗАЦИЯ РЕДАКТОРОВ И РЕСАЙЗЕРОВ
+        // ==========================================
+        const editors = {};
+        for (let i = 1; i <= 5; i++) {
+            editors[`html${i}`] = CodeMirror.fromTextArea(document.getElementById(`html${i}`), {
+                mode: "htmlmixed", theme: "dracula", lineNumbers: true, autoCloseTags: true, autoCloseBrackets: true
+            });
+            editors[`css${i}`] = CodeMirror.fromTextArea(document.getElementById(`css${i}`), {
+                mode: "css", theme: "dracula", lineNumbers: true, autoCloseBrackets: true
+            });
+            
+            initHorizontalResizer(i);
+            initVerticalResizer(i);
+        }
+
+        function initHorizontalResizer(num) {
+            const resizer = document.getElementById(`resizer-h${num}`);
+            const htmlContainer = document.getElementById(`html-container${num}`);
+            const cssContainer = document.getElementById(`css-container${num}`);
+            const editorsPane = document.getElementById(`editors-pane${num}`);
+            let isResizing = false;
+
+            resizer.addEventListener('mousedown', (e) => {
+                isResizing = true;
+                resizer.classList.add('active');
+                document.body.style.cursor = 'row-resize';
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isResizing) return;
+                const paneRect = editorsPane.getBoundingClientRect();
+                let newHeight = e.clientY - paneRect.top;
+                
+                if (newHeight < 100) newHeight = 100;
+                if (newHeight > paneRect.height - 100) newHeight = paneRect.height - 100;
+                
+                htmlContainer.style.height = `${newHeight}px`;
+                htmlContainer.style.flex = 'none';
+                cssContainer.style.flex = '1';
+                
+                editors[`html${num}`].refresh();
+                editors[`css${num}`].refresh();
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isResizing) {
+                    isResizing = false;
+                    resizer.classList.remove('active');
+                    document.body.style.cursor = 'default';
+                }
+            });
+        }
+
+        function initVerticalResizer(num) {
+            const resizer = document.getElementById(`resizer-v${num}`);
+            const leftPane = document.getElementById(`editors-pane${num}`);
+            const workspace = document.getElementById(`workspace${num}`);
+            let isResizing = false;
+
+            resizer.addEventListener('mousedown', (e) => {
+                isResizing = true;
+                resizer.classList.add('active');
+                document.body.style.cursor = 'col-resize';
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isResizing) return;
+                const containerRect = workspace.getBoundingClientRect();
+                let newWidth = e.clientX - containerRect.left;
+                
+                if (newWidth < 200) newWidth = 200;
+                if (newWidth > containerRect.width - 200) newWidth = containerRect.width - 200;
+                
+                leftPane.style.width = `${newWidth}px`;
+                
+                editors[`html${num}`].refresh();
+                editors[`css${num}`].refresh();
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isResizing) {
+                    isResizing = false;
+                    resizer.classList.remove('active');
+                    document.body.style.cursor = 'default';
+                }
+            });
+        }
+
+        const templates = {
+            html1: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Работа 1</title>\n</head>\n<body>\n    <a href="#" class="my-link">Наведи на меня</a>\n</body>\n</html>`,
+            html2: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Работа 2</title>\n</head>\n<body>\n    <img src="https://s10.iimage.su/s/11/uE5vsc2x7k8GUAR5a6dDqLsWUhgzZn2FqB71H1WsW.jpg" class="avatar" alt="Avatar">\n</body>\n</html>`,
+            html3: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Работа 3</title>\n</head>\n<body>\n    <img src="https://s10.iimage.su/s/11/u6ZrMaKx13q8k3viVnGDzq7IpwONDB6178VmUQWYa.jpg" class="fit-img" alt="Fit example">\n</body>\n</html>`,
+            html4: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Работа 4</title>\n</head>\n<body>\n    <button class="cool-btn">Отправить</button>\n</body>\n</html>`,
+            html5: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Работа 5</title>\n</head>\n<body>\n    <img src="https://s10.iimage.su/s/11/uMGly3bxZGCA1esVrTtan9R7oDLha5L2cXFrw8arV.jpg" class="card-img" alt="Card">\n    <br><br>\n    <button class="card-btn">Читать далее</button>\n</body>\n</html>`
+        };
+
+        const cssTemplates = {
+            css1: `/* Напишите стили для .my-link и .my-link:hover здесь */\n.my-link {\n    \n}\n\n.my-link:hover {\n    \n}\n`,
+            css2: `/* Напишите стили для .avatar здесь */\n.avatar {\n    \n}\n`,
+            css3: `/* Напишите стили для .fit-img здесь */\n.fit-img {\n    \n}\n`,
+            css4: `/* Напишите стили для .cool-btn и .cool-btn:hover здесь */\n.cool-btn {\n    \n}\n\n.cool-btn:hover {\n    \n}\n`,
+            css5: `/* Напишите стили для .card-img и .card-btn здесь */\n.card-img {\n    \n}\n\n.card-btn {\n    \n}\n`
+        };
+
+        for (let i = 1; i <= 5; i++) {
+            editors[`html${i}`].setValue(templates[`html${i}`]);
+            editors[`css${i}`].setValue(cssTemplates[`css${i}`]);
+        }
+
+        function updatePreview(num) {
+            const html = editors[`html${num}`].getValue();
+            const css = editors[`css${num}`].getValue();
+            const iframe = document.getElementById(`preview${num}`);
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+            doc.open();
+            doc.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${css}</style></head><body>${html}</body></html>`);
+            doc.close();
+        }
+
+        function showHint(num) { document.getElementById(`hint${num}`).classList.toggle('hide'); }
+
+        function showPractice(num) {
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`practice${i}`).classList.add('hide');
+                document.querySelectorAll('.practice-btn')[i-1].classList.remove('active');
+            }
+            document.getElementById(`practice${num}`).classList.remove('hide');
+            document.querySelectorAll('.practice-btn')[num-1].classList.add('active');
+            updatePreview(num);
+            checkCode(num);
+        }
+
+        // ==========================================
+        // 3. ПОЛНОЭКРАННЫЙ РЕЖИМ
+        // ==========================================
+        function toggleFullscreen(containerId) {
+            const container = document.getElementById(containerId);
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(err => console.error(`Ошибка: ${err.message}`));
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            const isFullscreen = !!document.fullscreenElement;
+            document.querySelectorAll('.btn-fullscreen').forEach(btn => {
+                btn.innerHTML = isFullscreen ? '✖ Выйти' : '⛶ На весь экран';
+            });
+            if (isFullscreen && document.fullscreenElement) {
+                const id = document.fullscreenElement.id;
+                const num = id.replace('trainer', '');
+                if (editors[`html${num}`]) {
+                    setTimeout(() => {
+                        editors[`html${num}`].refresh();
+                        editors[`css${num}`].refresh();
+                    }, 150);
+                }
+            }
+        });
+
+        // ==========================================
+        // 4. ПРОВЕРКА ПРАКТИКИ
+        // ==========================================
+        let practiceCompleted = {1: false, 2: false, 3: false, 4: false, 5: false};
+
+        const checks = {
+            1: [ 
+                { regex: /\.my-link\s*\{[^}]*text-decoration\s*:\s*none[^}]*\}/i, desc: '.my-link имеет text-decoration: none' }, 
+                { regex: /\.my-link:hover\s*\{[^}]*color\s*:\s*#e63946[^}]*\}/i, desc: '.my-link:hover имеет красный цвет' }
+            ],
+            2: [ 
+                { regex: /\.avatar\s*\{[^}]*border-radius\s*:\s*50%[^}]*\}/i, desc: '.avatar имеет border-radius: 50%' }, 
+                { regex: /\.avatar\s*\{[^}]*object-fit\s*:\s*cover[^}]*\}/i, desc: '.avatar имеет object-fit: cover' }
+            ],
+            3: [ 
+                { regex: /\.fit-img\s*\{[^}]*object-fit\s*:\s*cover[^}]*\}/i, desc: '.fit-img имеет object-fit: cover' },
+                { regex: /\.fit-img\s*\{[^}]*width\s*:\s*300px[^}]*\}/i, desc: '.fit-img имеет width: 300px' }
+            ],
+            4: [ 
+                { regex: /\.cool-btn\s*\{[^}]*background-color\s*:\s*#2ec4b6[^}]*\}/i, desc: '.cool-btn имеет зеленый фон' }, 
+                { regex: /\.cool-btn\s*\{[^}]*border\s*:\s*none[^}]*\}/i, desc: '.cool-btn не имеет границы' },
+                { regex: /\.cool-btn:hover\s*\{[^}]*background-color\s*:\s*#25a99d[^}]*\}/i, desc: '.cool-btn:hover меняет цвет фона' }
+            ],
+            5: [ 
+                { regex: /\.card-img\s*\{[^}]*border-radius\s*:\s*8px[^}]*\}/i, desc: '.card-img имеет скругление 8px' }, 
+                { regex: /\.card-btn\s*\{[^}]*background\s*:\s*#4361ee[^}]*\}/i, desc: '.card-btn имеет синий фон' },
+                { regex: /\.card-btn\s*\{[^}]*color\s*:\s*white[^}]*\}/i, desc: '.card-btn имеет белый текст' }
+            ]
+        };
+
+        function checkCode(num) {
+            let cssCode = editors[`css${num}`].getValue();
+            let cleanCode = cssCode.replace(/\/\*[\s\S]*?\*\//g, '');
+            
+            const checkerDiv = document.getElementById(`checker${num}`);
+            const title = checkerDiv.querySelector('.checker-title');
+            checkerDiv.innerHTML = '';
+            checkerDiv.appendChild(title);
+
+            let allPassed = true;
+            checks[num].forEach(check => {
+                const isPresent = check.regex.test(cleanCode);
+                const icon = isPresent ? '✅' : '❌';
+                const className = isPresent ? 'check-pass' : 'check-fail';
+                if (!isPresent) allPassed = false;
+
+                const item = document.createElement('div');
+                item.className = 'check-item';
+                item.innerHTML = `<span class="check-icon ${className}">${icon}</span> ${check.desc}`;
+                checkerDiv.appendChild(item);
+            });
+
+            practiceCompleted[num] = allPassed;
+
+            if (allPassed) {
+                checkerDiv.classList.add('all-pass');
+                const successMsg = document.createElement('div');
+                successMsg.style.color = '#0f5132'; successMsg.style.fontWeight = 'bold'; successMsg.style.marginTop = '10px';
+                successMsg.textContent = '🎉 Задание выполнено! (+2 балла)';
+                checkerDiv.appendChild(successMsg);
+            } else {
+                checkerDiv.classList.remove('all-pass');
+            }
+        }
+
+        // ==========================================
+        // 5. ИТОГОВЫЙ ПОДСЧЕТ ОЦЕНКИ И БЛОКИРОВКА
+        // ==========================================
+        function calculateFinalGrade() {
+            let testScore = 0;
+            const totalTestQuestions = 15;
+            const textAnswers = { 
+                q3: ['border-radius'], 
+                q5: [':visited', 'visited'], 
+                q8: ['grayscale(100%)', 'grayscale(1)', 'grayscale'], 
+                q12: ['0.3s', '0.3 s', '.3s'], 
+                q15: ['object-fit'] 
+            };
+
+            for (let i = 1; i <= totalTestQuestions; i++) {
+                const qName = `q${i}`; let isCorrect = false;
+                const radio = document.querySelector(`input[name="${qName}"]:checked`);
+                if (radio && radio.value === 'correct') isCorrect = true;
+                const textInput = document.querySelector(`input[name="${qName}"]`);
+                if (textInput && textAnswers[qName]) { 
+                    if (textAnswers[qName].includes(textInput.value.trim().toLowerCase())) isCorrect = true; 
+                }
+                if (isCorrect) testScore++;
+            }
+
+            let practiceScore = 0;
+            for (let i = 1; i <= 5; i++) {
+                if (practiceCompleted[i]) practiceScore += 2;
+            }
+
+            const totalScore = testScore + practiceScore;
+            const maxScore = totalTestQuestions + 10;
+            const percentage = Math.round((totalScore / maxScore) * 100);
+
+            let grade = 2; let message = "Вам нужно внимательно повторить теорию и переделать задания."; let color = "#e63946";
+            if (percentage >= 90) { grade = 5; message = "Великолепно! Вы отлично усвоили материал урока."; color = "#2ec4b6"; }
+            else if (percentage >= 70) { grade = 4; message = "Хороший результат! Но есть небольшие пробелы, которые стоит повторить."; color = "#4361ee"; }
+            else if (percentage >= 50) { grade = 3; message = "Удовлетворительно. Рекомендуется пройти практические задания еще раз."; color = "#ff9f1c"; }
+
+            const form = document.getElementById('quizForm');
+            const inputs = form.querySelectorAll('input, button');
+            inputs.forEach(input => { input.disabled = true; });
+            form.classList.add('locked');
+            
+            const btn = form.querySelector('button');
+            btn.textContent = '✅ Тест завершен. Изменение ответов запрещено.';
+
+            document.getElementById('practiceScoreDisplay').textContent = `${practiceScore} / 10`;
+            document.getElementById('testScoreDisplay').textContent = `${testScore} / 15`;
+            document.getElementById('totalScoreDisplay').textContent = `${totalScore} / 25`;
+            
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = percentage + '%'; progressFill.textContent = percentage + '%';
+
+            const gradeDisplay = document.getElementById('finalGradeDisplay');
+            gradeDisplay.textContent = `Итоговая оценка: ${grade}`; gradeDisplay.style.color = color;
+            document.getElementById('finalMessage').textContent = message;
+            
+            const resultBox = document.getElementById('finalResult');
+            resultBox.style.display = 'block';
+            resultBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        updatePreview(1); checkCode(1); 
+    </script>
+	<!-- Плавающая кнопка возврата на главную -->
+<a href="index.html" class="back-to-home-btn" title="Вернуться к содержанию курса">
+    🏠 <span class="btn-text">На главную</span>
+</a>
+</body>
+</html>

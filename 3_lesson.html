@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Урок 3: Списки и таблицы в HTML</title>
+    <!-- Подсветка синтаксиса для HTML (библиотека Prism.js) -->
+<<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --primary: #4361ee; --primary-hover: #3a56d4; --success: #2ec4b6;
+            --warning: #ff9f1c; --danger: #e63946; --text-dark: #212529; --border: #dee2e6;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.7; color: var(--text-dark);background: radial-gradient(circle, #0e0594 23%, #041439 41%, #012941 60%, #2b0349 89%);  }
+        
+        .no-select { user-select: none; -webkit-user-select: none; }
+        .CodeMirror, .input-answer, textarea, .code-block { user-select: text !important; -webkit-user-select: text !important; }
+
+        .header { background: linear-gradient(135deg, #270471 0%, #05318a 100%); color: white; padding: 30px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .header h1 { font-size: 38px; margin-bottom: 10px; }
+        .header p { font-size: 20px; opacity: 0.9; }
+        .breadcrumb { background: white; padding: 15px 0; border-bottom: 1px solid var(--border); margin-bottom: 30px; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+        
+        .section { background: white; border-radius: 12px; padding: 35px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .section h2 { color: var(--primary); border-left: 5px solid var(--primary); padding-left: 15px; margin-bottom: 25px; font-size: 26px; }
+        .section h3 { color: #343a40; margin: 30px 0 15px; font-size: 20px; border-bottom: 2px solid #f8f9fa; padding-bottom: 10px; }
+        .section h4 { color: #495057; margin: 20px 0 10px; font-size: 18px; }
+        .section h5 { color: #6c757d; margin: 15px 0 10px; font-size: 16px; }
+        .section p { margin-bottom: 15px; }
+        
+        .tag { background: #e9ecef; color: #d63384; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; display: inline-block; }
+        
+        /* Строго вертикальный блок кода с отступами */
+        .code-block { 
+            background: #282a36; 
+            color: #f8f8f2; 
+            padding: 20px; 
+            border-radius: 8px; 
+            font-family: 'Consolas', 'Monaco', monospace; 
+            overflow-x: auto; 
+            margin: 15px 0; 
+            border-left: 4px solid var(--primary); 
+            line-height: 1.8; 
+            font-size: 14px;
+        }
+        
+        .analogy-box, .tip-box, .warning-box { padding: 20px; border-radius: 0 8px 8px 0; margin: 20px 0; }
+        .analogy-box { background: #e7f5ff; border-left: 5px solid var(--primary); }
+        .tip-box { background: #d1e7dd; border-left: 5px solid var(--success); }
+        .warning-box { background: #f8d7da; border-left: 5px solid var(--danger); }
+        
+        .practice-nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .practice-btn { background: white; border: 2px solid var(--primary); color: var(--primary); padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s; text-align: center; }
+        .practice-btn:hover, .practice-btn.active { background: var(--primary); color: white; transform: translateY(-2px); }
+        
+        .trainer-container { border: 2px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 20px; }
+        .trainer-header { background: #343a40; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .task-info { background: #fff3cd; border: 2px solid var(--warning); padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .task-info h3 { color: #856404; margin-bottom: 10px; }
+        
+        .workspace { display: flex; height: 450px; }
+        .editors-pane { width: 50%; display: flex; flex-direction: column; border-right: 2px solid #44475a; }
+        .editor-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .editor-label { padding: 8px 12px; background: #44475a; font-size: 12px; font-weight: bold; color: #f8f8f2; text-transform: uppercase; }
+        .CodeMirror { flex: 1; height: 100% !important; font-size: 14px; }
+        .preview-pane { width: 50%; background: white; }
+        iframe { width: 100%; height: 100%; border: none; }
+        
+        .btn { background: var(--success); color: white; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: all 0.3s; }
+        .btn:hover { background: #25a99d; transform: translateY(-1px); }
+        .btn-secondary { background: var(--warning); color: #212529; }
+        .btn-secondary:hover { background: #e8900e; }
+        .btn-check { background: var(--primary); }
+        .btn-check:hover { background: var(--primary-hover); }
+        
+        .code-checker { background: #f8f9fa; padding: 15px 20px; border-top: 1px solid var(--border); transition: background 0.3s; }
+        .code-checker.all-pass { background: #d1e7dd; border-top: 2px solid var(--success); }
+        .checker-title { font-weight: bold; margin-bottom: 12px; color: var(--text-dark); font-size: 15px; }
+        .check-item { display: flex; align-items: center; margin-bottom: 6px; font-size: 14px; }
+        .check-icon { margin-right: 10px; font-weight: bold; width: 20px; text-align: center; flex-shrink: 0; }
+        .check-pass { color: var(--success); }
+        .check-fail { color: var(--danger); }
+
+        .quiz-question { margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid var(--primary); }
+        .quiz-options label { display: block; padding: 12px 15px; margin: 8px 0; background: white; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .quiz-options label:hover { background: #e9ecef; border-color: var(--primary); }
+        .input-answer { width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 6px; font-size: 16px; font-family: monospace; margin-top: 10px; transition: all 0.2s; }
+        
+        #quizForm.locked { opacity: 0.7; pointer-events: none; }
+        #quizForm.locked .btn-final { pointer-events: auto; background-color: #6c757d !important; cursor: not-allowed !important; transform: none !important; }
+        #quizForm.locked .quiz-options label { cursor: not-allowed; background: #e9ecef; border-color: #dee2e6; }
+
+        .final-result-box { margin-top: 30px; padding: 30px; border-radius: 12px; text-align: center; background: radial-gradient(circle, #00c9ff 0%, #9790fe 100%); border: 3px solid var(--primary); display: none; }
+        .score-breakdown { display: flex; justify-content: space-around; margin: 20px 0; flex-wrap: wrap; gap: 15px; }
+        .score-item { background: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); min-width: 140px; }
+        .score-item h4 { color: #6c757d; font-size: 14px; margin-bottom: 5px; }
+        .score-item .value { font-size: 28px; font-weight: bold; color: var(--primary); }
+        .final-grade { font-size: 36px; font-weight: bold; color: var(--success); margin-top: 15px; }
+        
+        .progress-bar { background: var(--border); height: 30px; border-radius: 15px; overflow: hidden; margin: 20px 0; }
+        .progress-fill { background: linear-gradient(90deg, var(--success), var(--primary)); height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; transition: width 0.5s; }
+        .footer { background: #343a40; color: white; text-align: center; padding: 30px 0; margin-top: 50px; }
+        .hide { display: none; }
+
+        table.demo-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        table.demo-table th, table.demo-table td { border: 2px solid var(--border); padding: 10px; text-align: left; }
+        table.demo-table th { background: var(--primary); color: white; }
+        table.demo-table tr:nth-child(even) { background: #f8f9fa; }
+        
+        .list-example {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .list-example h5 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .list-example ul, .list-example ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        .list-example li {
+            margin-bottom: 8px;
+        }
+        .list-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) { 
+            .workspace { flex-direction: column; height: auto; } 
+            .editors-pane, .preview-pane { width: 100%; height: 300px; } 
+            .score-breakdown { flex-direction: column; align-items: center; }
+            .list-comparison { grid-template-columns: 1fr; }
+        }
+   
+    /* Стили для блоков кода с подсветкой Prism */
+/* === АБСОЛЮТНОЕ ИСПРАВЛЕНИЕ СВЕТЛОГО ФОНА ДЛЯ HTML КОДА === */
+
+/* 1. Принудительно задаем темный фон для самих блоков pre и code */
+pre[class*="language-"],
+code[class*="language-"],
+pre code {
+    background-color: #282a36 !important; /* Темный фон Dracula */
+    color: #f8f8f2 !important;            /* Светлый цвет текста */
+    text-shadow: none !important;
+    border-radius: 8px;
+    border-left: 4px solid #4361ee;       /* Синяя полоска слева для красоты */
+}
+
+/* 2. КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: Убираем любой фон у внутренних элементов подсветки */
+.token, 
+.token.punctuation, 
+.token.operator, 
+.token.entity, 
+.token.url, 
+.language-css .token.string, 
+.style .token.string {
+    background-color: transparent !important; /* Убирает светлые квадраты под словами */
+}
+
+/* 3. Настраиваем красивые цвета синтаксиса именно для HTML */
+.token.comment { color: #6272a4 !important; font-style: italic; } /* Комментарии --> */
+.token.tag { color: #ff79c6 !important; }         /* Теги: <div>, <form> */
+.token.attr-name { color: #50fa7b !important; }   /* Атрибуты: action, type */
+.token.attr-value { color: #f1fa8c !important; }  /* Значения: "/send", "text" */
+.token.punctuation { color: #f8f8f2 !important; } /* Скобки: < > = " " */
+code{color: #343a40;  font-size: 18px;font-weight: bold;}
+input[type="radio"] {
+  margin-right: 10px;
+  
+}
+/* === ПЛАВАЮЩАЯ КНОПКА "НА ГЛАВНУЮ" === */
+.back-to-home-btn {
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    z-index: 9999; /* Чтобы кнопка была поверх всех элементов */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #e34f26 0%, #1572b6 100%); /* Цвета HTML и CSS */
+    color: white;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    box-shadow: 0 4px 15px rgba(21, 114, 182, 0.4);
+    transition: all 0.3s ease;
+    opacity: 0.9;
+}
+
+.back-to-home-btn:hover {
+    opacity: 1;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(21, 114, 182, 0.6);
+}
+
+/* Адаптация для мобильных устройств: оставляем только иконку */
+@media (max-width: 768px) {
+    .back-to-home-btn {
+        right: 20px;
+        bottom: 20px;
+        padding: 14px;
+        border-radius: 50%;
+    }
+    .back-to-home-btn .btn-text {
+        display: none; /* Скрываем текст на маленьких экранах */
+    }
+}
+</style>
+</head>
+<body class="no-select">
+
+    <div class="header">
+        <div class="container">
+            <h1>🌐 Основы HTML</h1>
+            <p>Тема 3: Списки и таблицы</p>
+        </div>
+    </div>
+    
+    <div class="breadcrumb">
+        <div class="container">
+            <a href="#">🏠 Главная</a> / <span>Урок 3: Списки и таблицы</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- ТЕОРИЯ -->
+        <section class="section" id="theory">
+            <h2>📚 1. Теоретический материал</h2>
+            
+            <h3>Что такое списки в HTML?</h3>
+            <p>Списки позволяют организовать информацию в виде перечня элементов. В HTML существует <strong>три основных типа списков</strong>:</p>
+
+            <h4>1. Маркированный список (&lt;ul&gt;)</h4>
+            <p>Используется для перечисления элементов, где порядок не важен. Каждый элемент маркируется маркером (точкой, кружком или квадратом).</p>
+            
+            <h5>Типы маркеров для списка:</h5>
+            <p>Атрибут <code>type</code> позволяет изменить вид маркера (хотя в современном HTML для этого чаще используют CSS):</p>
+            
+            <div class="list-comparison">
+                <div class="list-example">
+                    <h5>type="disc" (по умолчанию)</h5>
+                    <ul style="list-style-type: disc;">
+                        <li>Яблоки</li>
+                        <li>Бананы</li>
+                    </ul>
+                    <pre><code class="language-html">
+&lt;ul type="disc"&gt;
+    &lt;li&gt;Яблоки&lt;/li&gt;
+    &lt;li&gt;Бананы&lt;/li&gt;
+&lt;/ul&gt;
+                    </code></pre>
+                </div>
+
+                <div class="list-example">
+                    <h5>type="circle"</h5>
+                    <ul style="list-style-type: circle;">
+                        <li>Яблоки</li>
+                        <li>Бананы</li>
+                    </ul>
+                     <pre><code class="language-html">
+&lt;ul type="circle"&gt;<br>
+    &lt;li&gt;Яблоки&lt;/li&gt;<br>
+    &lt;li&gt;Бананы&lt;/li&gt;<br>
+&lt;/ul&gt;
+                    </code></pre>
+                </div>
+
+                <div class="list-example">
+                    <h5>type="square"</h5>
+                    <ul style="list-style-type: square;">
+                        <li>Яблоки</li>
+                        <li>Бананы</li>
+                    </ul>
+                     <pre><code class="language-html">
+&lt;ul type="square"&gt;<br>
+    &lt;li&gt;Яблоки&lt;/li&gt;<br>
+    &lt;li&gt;Бананы&lt;/li&gt;<br>
+&lt;/ul&gt;
+                    </code></pre>
+                </div>
+            </div>
+
+            <h4>2. Нумерованный список (&lt;ol&gt;)</h4>
+            <p>Используется, когда важен порядок элементов. Элементы нумеруются автоматически.</p>
+            
+            <div class="list-example">
+                <h5>Пример нумерованного списка:</h5>
+                <ol>
+                    <li>Первый шаг</li>
+                    <li>Второй шаг</li>
+                    <li>Третий шаг</li>
+                </ol>
+                 <pre><code class="language-html">
+&lt;ol&gt;<br>
+    &lt;li&gt;Первый шаг&lt;/li&gt;<br>
+    &lt;li&gt;Второй шаг&lt;/li&gt;<br>
+    &lt;li&gt;Третий шаг&lt;/li&gt;<br>
+&lt;/ol&gt;
+                </code></pre>
+            </div>
+
+            <h5>Типы нумерации (атрибут type):</h5>
+            <div class="list-comparison">
+                <div class="list-example">
+                    <h5>type="1" (цифры)</h5>
+                    <ol type="1">
+                        <li>Первый</li>
+                        <li>Второй</li>
+                    </ol>
+                </div>
+                <div class="list-example">
+                    <h5>type="A" (заглавные буквы)</h5>
+                    <ol type="A">
+                        <li>Первый</li>
+                        <li>Второй</li>
+                    </ol>
+                </div>
+                <div class="list-example">
+                    <h5>type="a" (строчные буквы)</h5>
+                    <ol type="a">
+                        <li>Первый</li>
+                        <li>Второй</li>
+                    </ol>
+                </div>
+                <div class="list-example">
+                    <h5>type="I" (римские заглавные)</h5>
+                    <ol type="I">
+                        <li>Первый</li>
+                        <li>Второй</li>
+                    </ol>
+                </div>
+            </div>
+
+            <h4>3. Список определений (&lt;dl&gt;)</h4>
+            <p>Используется для создания словаря или списка терминов с определениями.</p>
+
+            <div class="list-example">
+                <h5>Пример списка определений:</h5>
+                <dl style="margin-left: 20px;">
+                    <dt style="font-weight: bold; margin-top: 10px; color: var(--primary);">HTML</dt>
+                    <dd style="margin-left: 20px; margin-bottom: 10px;">Язык гипертекстовой разметки</dd>
+                    
+                    <dt style="font-weight: bold; margin-top: 10px; color: var(--primary);">CSS</dt>
+                    <dd style="margin-left: 20px; margin-bottom: 10px;">Таблицы каскадных стилей</dd>
+                </dl>
+                 <pre><code class="language-html">
+&lt;dl&gt;
+    &lt;dt&gt;HTML&lt;/dt&gt;
+    &lt;dd&gt;Язык гипертекстовой разметки&lt;/dd&gt;
+    &lt;dt&gt;CSS&lt;/dt&gt;
+    &lt;dd&gt;Таблицы каскадных стилей&lt;/dd&gt;
+&lt;/dl&gt;
+                </code></pre>
+            </div>
+			 <h4>Вложенные списки</h4>
+            <p>Списки можно вкладывать друг в друга, создавая многоуровневую структуру:</p>
+
+            <div class="list-example">
+                <h5>Пример вложенного списка:</h5>
+                <ul>
+                    <li>Фрукты
+                        <ul>
+                            <li>Яблоки</li>
+                            <li>Груши</li>
+                            <li>Апельсины</li>
+                        </ul>
+                    </li>
+                    <li>Овощи
+                        <ul>
+                            <li>Морковь</li>
+                            <li>Картофель</li>
+                            <li>Капуста</li>
+                        </ul>
+                    </li>
+                    <li>Ягоды
+                        <ul>
+                            <li>Клубника</li>
+                            <li>Малина</li>
+                        </ul>
+                    </li>
+                </ul>
+                 <pre><code class="language-html">
+&lt;ul&gt;<br>
+   <b> &lt;li&gt;Фрукты </b>
+        &lt;ul&gt;<br>
+            &lt;li&gt;Яблоки&lt;/li&gt;
+            &lt;li&gt;Груши&lt;/li&gt;
+            &lt;li&gt;Апельсины&lt;/li&gt;
+        &lt;/ul&gt;
+   <b> &lt;/li&gt;</b>
+    <b>&lt;li&gt;Овощи</b>
+        &lt;ul&gt;
+            &lt;li&gt;Морковь&lt;/li&gt;
+            &lt;li&gt;Картофель&lt;/li&gt;
+            &lt;li&gt;Капуста&lt;/li&gt;
+        &lt;/ul&gt;
+    <b>&lt;/li&gt;</b>
+    <b>&lt;li&gt;Ягоды</b>
+        &lt;ul&gt;
+            &lt;li&gt;Клубника&lt;/li&gt;
+            &lt;li&gt;Малина&lt;/li&gt;
+        &lt;/ul&gt;
+    <b>&lt;/li&gt;</b>
+&lt;/ul&gt;
+                </code></pre>
+            </div>
+
+            <div class="analogy-box">
+                <h4>💡 Аналогия: Оглавление книги</h4>
+                <p>Вложенные списки похожи на оглавление: есть главные главы (первый уровень), а внутри них — параграфы (второй уровень), а внутри параграфов — подпункты (третий уровень).</p>
+            </div>
+
+            <h3>2. Таблицы в HTML</h3>
+            <p>Таблицы используются для представления данных в виде строк и столбцов.</p>
+
+            <h4>Основные теги таблиц:</h4>
+            <ul>
+                <li><span class="tag">&lt;table&gt;</span> — контейнер для всей таблицы</li>
+                <li><span class="tag">&lt;tr&gt;</span> (table row) — строка таблицы</li>
+                <li><span class="tag">&lt;td&gt;</span> (table data) — обычная ячейка с данными</li>
+                <li><span class="tag">&lt;th&gt;</span> (table header) — заголовочная ячейка (жирный текст по центру)</li>
+            </ul>
+
+            <div class="list-example">
+                <h5>Пример простой таблицы:</h5>
+                <table class="demo-table">
+                    <tr>
+                        <th>Имя</th>
+                        <th>Возраст</th>
+                        <th>Город</th>
+                    </tr>
+                    <tr>
+                        <td>Анна</td>
+                        <td>15</td>
+                        <td>Москва</td>
+                    </tr>
+                    <tr>
+                        <td>Иван</td>
+                        <td>14</td>
+                        <td>Санкт-Петербург</td>
+                    </tr>
+                    <tr>
+                        <td>Мария</td>
+                        <td>15</td>
+                        <td>Казань</td>
+                    </tr>
+                </table>
+                 <pre><code class="language-html">
+&lt;table&gt;<br>
+    &lt;tr&gt;<br>
+        &lt;th&gt;Имя&lt;/th&gt;<br>
+        &lt;th&gt;Возраст&lt;/th&gt;<br>
+        &lt;th&gt;Город&lt;/th&gt;<br>
+    &lt;/tr&gt;<br>
+    &lt;tr&gt;<br>
+        &lt;td&gt;Анна&lt;/td&gt;<br>
+        &lt;td&gt;15&lt;/td&gt;<br>
+        &lt;td&gt;Москва&lt;/td&gt;<br>
+    &lt;/tr&gt;<br>
+    &lt;tr&gt;<br>
+        &lt;td&gt;Иван&lt;/td&gt;<br>
+        &lt;td&gt;14&lt;/td&gt;<br>
+        &lt;td&gt;Санкт-Петербург&lt;/td&gt;<br>
+    &lt;/tr&gt;<br>
+    &lt;tr&gt;
+        &lt;td&gt;Мария&lt;/td&gt;<br>
+        &lt;td&gt;15&lt;/td&gt;<br>
+        &lt;td&gt;Казань&lt;/td&gt;<br>
+    &lt;/tr&gt;<br>
+&lt;/table&gt;<br>
+                </code></pre>
+            </div>
+
+            <h4>Атрибуты ячеек для объединения:</h4>
+            
+            <h5>1. Объединение столбцов (colspan)</h5>
+            <p>Атрибут <code><b>colspan</b></code> позволяет ячейке занять несколько столбцов:</p>
+
+            <div class="list-example">
+                <h5>Пример colspan:</h5>
+                <table class="demo-table">
+                    <tr>
+                        <th colspan="2" style="text-align: center;">Общий заголовок</th>
+                    </tr>
+                    <tr>
+                        <td>Ячейка 1</td>
+                        <td>Ячейка 2</td>
+                    </tr>
+                </table>
+                 <pre><code class="language-html">
+&lt;table&gt;<br>
+    &lt;tr&gt;<br>
+        &lt;th colspan="2"&gt;Общий заголовок&lt;/th&gt;<br>
+    &lt;/tr&gt;<br>
+    &lt;tr&gt;<br>
+        &lt;td&gt;Ячейка 1&lt;/td&gt;<br>
+        &lt;td&gt;Ячейка 2&lt;/td&gt;<br>
+    &lt;/tr&gt;<br>
+&lt;/table&gt;<br>
+                </code></pre>
+            </div>
+
+            <h5>2. Объединение строк (rowspan)</h5>
+            <p>Атрибут <code>rowspan</code> позволяет ячейке занять несколько строк:</p>
+
+            <div class="list-example">
+                <h5>Пример rowspan:</h5>
+                <table class="demo-table">
+                    <tr>
+                        <td rowspan="2">Объединено</td>
+                        <td>Ячейка A</td>
+                    </tr>
+                    <tr>
+                        <td>Ячейка B</td>
+                    </tr>
+                </table>
+                 <pre><code class="language-html">
+&lt;table&gt;<br>
+    &lt;tr&gt;<br>
+        &lt;td rowspan="2"&gt;Объединено&lt;/td&gt;<br>
+        &lt;td&gt;Ячейка A&lt;/td&gt;<br>
+    &lt;/tr&gt;<br>
+    &lt;tr&gt;<br>
+        &lt;td&gt;Ячейка B&lt;/td&gt;<br>
+    &lt;/tr&gt;<br>
+&lt;/table&gt;<br>
+                </code></pre>
+            </div>
+
+            <div class="tip-box">
+                <h4>💡 Когда использовать таблицы?</h4>
+                <p><strong>Используйте для:</strong> расписаний, прайс-листов, статистики, сравнения характеристик.</p>
+                <p><strong>НЕ используйте для:</strong> разметки всей страницы или простого расположения элементов (для этого есть CSS).</p>
+            </div>
+        </section>
+
+        <!-- ПРАКТИКА -->
+		<div class="section" id="practice">
+        <h2 style="margin: 30px 0 20px; color: var(--primary);">💻 2. Практические работы</h2>
+        <p style="margin-bottom: 20px;">Выполните 5 заданий. <strong>Внимательно копируйте текст из задания!</strong> За каждое полностью выполненное задание вы получите <strong>2 балла</strong>.</p>
+        
+        <div class="practice-nav">
+            <button class="practice-btn active" onclick="showPractice(1)">📝 Работа 1<br><small>Списки</small></button>
+            <button class="practice-btn" onclick="showPractice(2)">📝 Работа 2<br><small>Нумерованный список</small></button>
+            <button class="practice-btn" onclick="showPractice(3)">📝 Работа 3<br><small>Простая таблица</small></button>
+            <button class="practice-btn" onclick="showPractice(4)">📝 Работа 4<br><small>Сложная таблица</small></button>
+            <button class="practice-btn" onclick="showPractice(5)">📝 Работа 5<br><small>Творческое</small></button>
+        </div>
+		</div>
+
+        <!-- РАБОТА 1 -->
+        <section class="section practice-section" id="practice1">
+            <h2>Практическая работа 1: Маркированный список</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <ol style="margin: 15px 0 0 20px;">
+                    <li>Создайте маркированный список используя теги<code> &lt;ul&gt;и &lt;li&gt;</code>:
+                        <div class="code-block" style="margin-top: 10px; font-size: 16px;">
+<ul>
+    <li>Яблоки
+    <li>Бананы</li>
+    <li>Апельсины</li>
+</ul>
+                        </div>
+                    </li>
+                    <li>Перед списком добавьте заголовок: <code>&lt;h2&gt;Мои любимые фрукты&lt;/h2&gt;</code></li>
+                </ol>
+            </div>
+            <div class="trainer-container">
+                <div class="trainer-header"><span>🛠️ Редактор кода - Работа 1</span><div style="display: flex; gap: 10px;"><button class="btn btn-secondary" onclick="showHint(1)">💡 Подсказка</button><button class="btn btn-check" onclick="checkCode(1)">🔍 Проверить код</button><button class="btn" onclick="updatePreview(1)">▶ Запустить</button></div></div>
+                <div class="workspace">
+                    <div class="editors-pane"><div class="editor-container"><div class="editor-label">HTML</div><textarea id="html1"></textarea></div><div class="editor-container"><div class="editor-label">CSS</div><textarea id="css1"></textarea></div></div>
+                    <div class="preview-pane"><iframe id="preview1" sandbox="allow-scripts allow-same-origin"></iframe></div>
+                </div>
+                <div class="code-checker" id="checker1"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint1" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> Каждый элемент списка должен быть внутри тега &lt;li&gt;, а все вместе они находятся внутри &lt;ul&gt;.</div>
+        </section>
+
+        <!-- РАБОТА 2 -->
+        <section class="section practice-section hide" id="practice2">
+            <h2>Практическая работа 2: Нумерованный список с атрибутами</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <ol style="margin: 15px 0 0 20px;">
+                    <li>Создайте нумерованный список с буквенной нумерацией:
+                        <div class="code-block" style="margin-top: 10px; padding-left:40px; font-size: 16px;">
+<ol type="A">
+    <li>Первый пункт</li>
+    <li>Второй пункт</li>
+    <li>Третий пункт</li>
+</ol>
+                        </div>
+                    </li>
+                    <li>Добавьте заголовок: <code>&lt;h2&gt;План на день&lt;/h2&gt;</code></li>
+                </ol>
+            </div>
+            <div class="trainer-container">
+                <div class="trainer-header"><span>🛠️ Редактор кода - Работа 2</span><div style="display: flex; gap: 10px;"><button class="btn btn-secondary" onclick="showHint(2)">💡 Подсказка</button><button class="btn btn-check" onclick="checkCode(2)">🔍 Проверить код</button><button class="btn" onclick="updatePreview(2)">▶ Запустить</button></div></div>
+                <div class="workspace"><div class="editors-pane"><div class="editor-container"><div class="editor-label">HTML</div><textarea id="html2"></textarea></div><div class="editor-container"><div class="editor-label">CSS</div><textarea id="css2"></textarea></div></div><div class="preview-pane"><iframe id="preview2" sandbox="allow-scripts allow-same-origin"></iframe></div></div>
+                <div class="code-checker" id="checker2"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint2" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> Атрибут type="A" заставит список нумероваться заглавными буквами (A, B, C...).</div>
+        </section>
+
+        <!-- РАБОТА 3 -->
+        <section class="section practice-section hide" id="practice3">
+            <h2>Практическая работа 3: Простая таблица</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <ol style="margin: 15px 0 0 20px;">
+                    <li>Создайте таблицу с расписанием:
+                        <div class="code-block" style="margin-top: 10px; font-size: 16px;">
+<table border=1>
+    <tr>
+        <th style="padding:5px;">День</th>
+        <th style="padding:5px;">Предмет</th>
+    </tr>
+    <tr>
+        <td style="padding:5px;">Понедельник</td>
+       <td style="padding:5px;">Математика</td>
+    </tr>
+    <tr>
+        <td style="padding:5px;">Вторник</td>
+        <td style="padding:5px;">Русский язык</td>
+    </tr>
+</table>
+                        </div>
+                    </li>
+                    <li>Добавьте заголовок: <code>&lt;h2&gt;Моё расписание&lt;/h2&gt;</code></li>
+                </ol>
+            </div>
+            <div class="trainer-container">
+                <div class="trainer-header"><span>🛠️ Редактор кода - Работа 3</span><div style="display: flex; gap: 10px;"><button class="btn btn-secondary" onclick="showHint(3)">💡 Подсказка</button><button class="btn btn-check" onclick="checkCode(3)">🔍 Проверить код</button><button class="btn" onclick="updatePreview(3)">▶ Запустить</button></div></div>
+                <div class="workspace"><div class="editors-pane"><div class="editor-container"><div class="editor-label">HTML</div><textarea id="html3"></textarea></div><div class="editor-container"><div class="editor-label">CSS</div><textarea id="css3"></textarea></div></div><div class="preview-pane"><iframe id="preview3" sandbox="allow-scripts allow-same-origin"></iframe></div></div>
+                <div class="code-checker" id="checker3"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint3" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> Заголовки столбцов пишутся в &lt;th&gt;, обычные данные в &lt;td&gt;. Каждая строка — это &lt;tr&gt;.</div>
+        </section>
+
+        <!-- РАБОТА 4 -->
+        <section class="section practice-section hide" id="practice4">
+            <h2>Практическая работа 4: Таблица с объединением ячеек</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <ol style="margin: 15px 0 0 20px;">
+                    <li>Создайте таблицу с объединёнными ячейками:
+                        <div class="code-block" style="margin-top: 10px; font-size: 16px;">
+
+<table  border=1>
+                    <tr>
+                        <th colspan="2" style="text-align: center;">Расписание</th>
+                    </tr>
+                    <tr>
+                        <td style="padding:5px;">Понедельник</td>
+                        <td style="padding:5px;">Математика</td>
+                    </tr>
+                <tr>
+                        <td style="padding:5px;">Вторник</td>
+                        <td style="padding:5px;">Литература</td>
+                    </tr>
+				</table>
+                        </div>
+                    </li>
+                    <li>Добавьте заголовок: <code>&lt;h2&gt;Школьное расписание&lt;/h2&gt;</code></li>
+                </ol>
+            </div>
+            <div class="trainer-container">
+                <div class="trainer-header"><span>🛠️ Редактор кода - Работа 4</span><div style="display: flex; gap: 10px;"><button class="btn btn-secondary" onclick="showHint(4)">💡 Подсказка</button><button class="btn btn-check" onclick="checkCode(4)">🔍 Проверить код</button><button class="btn" onclick="updatePreview(4)">▶ Запустить</button></div></div>
+                <div class="workspace"><div class="editors-pane"><div class="editor-container"><div class="editor-label">HTML</div><textarea id="html4"></textarea></div><div class="editor-container"><div class="editor-label">CSS</div><textarea id="css4"></textarea></div></div><div class="preview-pane"><iframe id="preview4" sandbox="allow-scripts allow-same-origin"></iframe></div></div>
+                <div class="code-checker" id="checker4"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint4" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> Атрибут colspan="2" в первой ячейке заголовка объединит два столбца.</div>
+        </section>
+
+        <!-- РАБОТА 5 -->
+        <section class="section practice-section hide" id="practice5">
+            <h2>Практическая работа 5: Творческое задание</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <p>Создайте страницу со списком ваших любимых фильмов и таблицей с их характеристиками.</p>
+                <ol style="margin: 15px 0 0 20px;">
+                    <li>Заголовок <span class="tag">&lt;h1&gt;</span> с названием</li>
+                    <li>Маркированный список <span class="tag">&lt;ul&gt;</span> из 3 фильмов</li>
+                    <li>Таблица <span class="tag">&lt;table&gt;</span> с колонками: Название, Год, Жанр</li>
+                    <li>В таблице должно быть минимум 2 строки с данными</li>
+                </ol>
+            </div>
+            <div class="trainer-container">
+                <div class="trainer-header"><span>🛠️ Редактор кода - Работа 5</span><div style="display: flex; gap: 10px;"><button class="btn btn-secondary" onclick="showHint(5)">💡 Подсказка</button><button class="btn btn-check" onclick="checkCode(5)">🔍 Проверить код</button><button class="btn" onclick="updatePreview(5)">▶ Запустить</button></div></div>
+                <div class="workspace"><div class="editors-pane"><div class="editor-container"><div class="editor-label">HTML</div><textarea id="html5"></textarea></div><div class="editor-container"><div class="editor-label">CSS</div><textarea id="css5"></textarea></div></div><div class="preview-pane"><iframe id="preview5" sandbox="allow-scripts allow-same-origin"></iframe></div></div>
+                <div class="code-checker" id="checker5"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint5" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> Сначала создайте список, потом таблицу. В таблице первая строка должна быть с &lt;th&gt; (заголовки столбцов).</div>
+        </section>
+
+        <!-- ТЕСТ -->
+        <section class="section" id="test">
+            <h2>📝 3. Проверь себя (Тест)</h2>
+            <p style="margin-bottom: 20px;">Ответьте на 15 вопросов. За каждый правильный ответ вы получите <strong>1 балл</strong>. <span style="color: var(--danger); font-weight: bold;">Внимание: после проверки изменить ответы будет невозможно!</span></p>
+            <form id="quizForm">
+                <div class="quiz-question"><h3>1. Какой тег используется для маркированного списка?</h3><div class="quiz-options"><label><input type="radio" name="q1" value="wrong"><b>&lt;ol&gt;</b></label><label><input type="radio" name="q1" value="correct"><b>&lt;ul&gt;</b></label><label><input type="radio" name="q1" value="wrong"><b>&lt;li&gt;</b></label></div></div>
+                <div class="quiz-question"><h3>2. Какой тег обозначает элемент списка?</h3><div class="quiz-options"><label><input type="radio" name="q2" value="correct"><b>&lt;li&gt;</b></label><label><input type="radio" name="q2" value="wrong"><b>&lt;item&gt;</b></label><label><input type="radio" name="q2" value="wrong"><b>&lt;element&gt;</b></label></div></div>
+                <div class="quiz-question"><h3>3. Напишите тег для нумерованного списка.</h3><input type="text" class="input-answer" name="q3" placeholder="Например: <h1>"></div>
+                <div class="quiz-question"><h3>4. Какой атрибут меняет тип нумерации на буквы?</h3><div class="quiz-options"><label><input type="radio" name="q4" value="correct"><b>type="A"</b></label><label><input type="radio" name="q4" value="wrong"><b>style="letters"</b></label><label><input type="radio" name="q4" value="wrong"><b>format="abc"</b></label></div></div>
+                <div class="quiz-question"><h3>5. Напишите тег для создания таблицы.</h3><input type="text" class="input-answer" name="q5" placeholder="Например: <h1>"></div>
+                <div class="quiz-question"><h3>6. Какой тег создаёт строку в таблице?</h3><div class="quiz-options"><label><input type="radio" name="q6" value="correct"><b>&lt;tr&gt;</b></label><label><input type="radio" name="q6" value="wrong"><b>&lt;row&gt;</b></label><label><input type="radio" name="q6" value="wrong"><b>&lt;line&gt;</b></label></div></div>
+                <div class="quiz-question"><h3>7. Чем отличается &lt;th&gt; от &lt;td&gt;?</h3><div class="quiz-options"><label><input type="radio" name="q7" value="correct"><b>&lt;th&gt; — заголовок, &lt;td&gt; — данные</b></label><label><input type="radio" name="q7" value="wrong"><b>&lt;th&gt; шире, чем &lt;td&gt;</b></label><label><input type="radio" name="q7" value="wrong"><b>Ничем не отличаются</b></label></div></div>
+                <div class="quiz-question"><h3>8. Напишите атрибут для объединения столбцов.</h3><input type="text" class="input-answer" name="q8" placeholder="Например: col"></div>
+                <div class="quiz-question"><h3>9. Какой тег используется для списка определений?</h3><div class="quiz-options"><label><input type="radio" name="q9" value="correct"><b>&lt;dl&gt;</b></label><label><input type="radio" name="q9" value="wrong"><b>&lt;def&gt;</b></label><label><input type="radio" name="q9" value="wrong"><b>&lt;definition&gt;</b></label></div></div>
+                <div class="quiz-question"><h3>10. Что означает аббревиатура colspan?</h3><div class="quiz-options"><label><input type="radio" name="q10" value="correct"><b>Column span (охват столбцов)</b></label><label><input type="radio" name="q10" value="wrong"><b>Column space (пространство столбца)</b></label><label><input type="radio" name="q10" value="wrong"><b>Cell span (охват ячейки)</b></label></div></div>
+                <div class="quiz-question"><h3>11. Какой тег добавляет подпись к таблице?</h3><div class="quiz-options"><label><input type="radio" name="q11" value="correct"><b>&lt;caption&gt;</b></label><label><input type="radio" name="q11" value="wrong"><b>&lt;title&gt;</b></label><label><input type="radio" name="q11" value="wrong"><b>&lt;label&gt;</b></label></div></div>
+                <div class="quiz-question"><h3>12. Напишите тег для определения термина в списке определений.</h3><input type="text" class="input-answer" name="q12" placeholder="Например: <h1>"></div>
+                <div class="quiz-question"><h3>13. Можно ли вкладывать списки друг в друга?</h3><div class="quiz-options"><label><input type="radio" name="q13" value="correct"><b>Да</b></label><label><input type="radio" name="q13" value="wrong"><b>Нет</b></label><label><input type="radio" name="q13" value="wrong"><b>Только маркированные</b></label></div></div>
+                <div class="quiz-question"><h3>14. Какой атрибут объединяет строки?</h3><div class="quiz-options"><label><input type="radio" name="q14" value="correct"><b>=rowspan</b></label><label><input type="radio" name="q14" value="wrong"><b>=colspan</b></label><label><input type="radio" name="q14" value="wrong"><b>=merge</b></label></div></div>
+                <div class="quiz-question"><h3>15. Напишите тег для тела таблицы (основных данных).</h3><input type="text" class="input-answer" name="q15" placeholder="Например: <h1>"></div>
+
+                <button type="button" class="btn btn-final" onclick="calculateFinalGrade()" style="width: 100%; padding: 15px; font-size: 18px; margin-top: 20px;">🏆 Рассчитать итоговую оценку</button>
+            </form>
+            
+            <div id="finalResult" class="final-result-box">
+                <h3 style="color: var(--primary); margin-bottom: 20px;">📊 Результаты выполнения урока</h3>
+                <div class="score-breakdown">
+                    <div class="score-item"><h4>Практические работы</h4><div class="value" id="practiceScoreDisplay">0 / 10</div></div>
+                    <div class="score-item"><h4>Тест</h4><div class="value" id="testScoreDisplay">0 / 15</div></div>
+                    <div class="score-item"><h4>Итого баллов</h4><div class="value" id="totalScoreDisplay">0 / 25</div></div>
+                </div>
+                <div class="progress-bar"><div id="progressFill" class="progress-fill" style="width: 0%">0%</div></div>
+                <div class="final-grade" id="finalGradeDisplay">Оценка: 2</div>
+                <p id="finalMessage" style="margin-top: 15px; color: #6c757d;"></p>
+            </div>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 Информатика 8 класс | Основы HTML и CSS</p>
+            <p>МКОУ Северная средняя школа | Учитель: Ятис В.В.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
+
+    <script>
+        // ==========================================
+        // 1. ЗАЩИТА ОТ СПИСЫВАНИЯ
+        // ==========================================
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('copy', event => event.preventDefault());
+        document.addEventListener('cut', event => event.preventDefault());
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i'))) e.preventDefault();
+        });
+
+        // ==========================================
+        // 2. ИНИЦИАЛИЗАЦИЯ РЕДАКТОРОВ
+        // ==========================================
+        const editors = {};
+        for (let i = 1; i <= 5; i++) {
+            editors[`html${i}`] = CodeMirror.fromTextArea(document.getElementById(`html${i}`), {
+                mode: "htmlmixed", theme: "dracula", lineNumbers: true, autoCloseTags: true, autoCloseBrackets: true
+            });
+            editors[`css${i}`] = CodeMirror.fromTextArea(document.getElementById(`css${i}`), {
+                mode: "css", theme: "dracula", lineNumbers: true
+            });
+        }
+
+        const templates = {
+            html1: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Списки</title>\n</head>\n<body>\n    <!-- Добавь заголовок h2 -->\n    \n    <!-- Создай маркированный список ul с тремя li -->\n    \n</body>\n</html>`,
+            html2: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Нумерованный список</title>\n</head>\n<body>\n    <!-- Добавь заголовок h2 "План на день" -->\n    \n    <!-- Создай нумерованный список ol с type="A" -->\n    \n</body>\n</html>`,
+            html3: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Таблица</title>\n</head>\n<body>\n    <!-- Добавь заголовок h2 "Моё расписание" -->\n    \n    <!-- Создай таблицу с двумя столбцами: День и Предмет -->\n    \n</body>\n</html>`,
+            html4: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Сложная таблица</title>\n</head>\n<body>\n    <!-- Добавь заголовок h2 "Школьное расписание" -->\n    \n    <!-- Создай таблицу с объединённым заголовком (colspan="2") -->\n    \n</body>\n</html>`,
+            html5: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Мои фильмы</title>\n</head>\n<body>\n    <!-- Создай: h1, ul с 3 фильмами, table с колонками Название/Год/Жанр -->\n    \n</body>\n</html>`
+        };
+
+        for (let i = 1; i <= 5; i++) {
+            editors[`html${i}`].setValue(templates[`html${i}`]);
+            editors[`css${i}`].setValue(`body { font-family: Arial, sans-serif; padding: 30px; background-color: #f4f4f9; color: #333; }\nh1, h2 { color: #4361ee; }\ntable { border-collapse: collapse; margin: 15px 0; }\nth, td { border: 2px solid #dee2e6; padding: 10px; text-align: left; }\nth { background: #4361ee; color: white; }`);
+        }
+
+        function updatePreview(num) {
+            const html = editors[`html${num}`].getValue();
+            const css = editors[`css${num}`].getValue();
+            const iframe = document.getElementById(`preview${num}`);
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+            doc.open();
+            doc.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${css}</style></head><body>${html}</body></html>`);
+            doc.close();
+        }
+
+        function showHint(num) { document.getElementById(`hint${num}`).classList.toggle('hide'); }
+
+        function showPractice(num) {
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`practice${i}`).classList.add('hide');
+                document.querySelectorAll('.practice-btn')[i-1].classList.remove('active');
+            }
+            document.getElementById(`practice${num}`).classList.remove('hide');
+            document.querySelectorAll('.practice-btn')[num-1].classList.add('active');
+            updatePreview(num);
+            checkCode(num);
+        }
+
+        // ==========================================
+        // 3. ПРОВЕРКА ПРАКТИКИ
+        // ==========================================
+        let practiceCompleted = {1: false, 2: false, 3: false, 4: false, 5: false};
+
+        const checks = {
+            1: [ 
+                { regex: /<h2>\s*Мои любимые фрукты\s*<\/h2>/i, desc: 'Заголовок h2' }, 
+                { regex: /<ul>/i, desc: 'Маркированный список ul' }, 
+                { regex: /<li>Яблоки<\/li>/i, desc: 'Элемент "Яблоки"' }, 
+                { regex: /<li>Бананы<\/li>/i, desc: 'Элемент "Бананы"' }, 
+                { regex: /<li>Апельсины<\/li>/i, desc: 'Элемент "Апельсины"' }
+            ],
+            2: [ 
+                { regex: /<h2>\s*План на день\s*<\/h2>/i, desc: 'Заголовок h2' }, 
+                { regex: /<ol\s+[^>]*type\s*=\s*["']A["'][^>]*>/i, desc: 'Нумерованный список с type="A"' }, 
+                { regex: /<li>.*Первый пункт.*<\/li>/i, desc: 'Первый пункт' }, 
+                { regex: /<li>.*Второй пункт.*<\/li>/i, desc: 'Второй пункт' }, 
+                { regex: /<li>.*Третий пункт.*<\/li>/i, desc: 'Третий пункт' }
+            ],
+            3: [ 
+                { regex: /<h2>\s*Моё расписание\s*<\/h2>/i, desc: 'Заголовок h2' }, 
+                { regex: /<table>/i, desc: 'Тег table' }, 
+                { regex: /<th>\s*День\s*<\/th>/i, desc: 'Заголовок "День"' }, 
+                { regex: /<th>\s*Предмет\s*<\/th>/i, desc: 'Заголовок "Предмет"' }, 
+                { regex: /<td>\s*Понедельник\s*<\/td>/i, desc: 'Ячейка "Понедельник"' }, 
+                { regex: /<td>\s*Математика\s*<\/td>/i, desc: 'Ячейка "Математика"' }
+            ],
+            4: [ 
+                { regex: /<h2>\s*Школьное расписание\s*<\/h2>/i, desc: 'Заголовок h2' }, 
+                { regex: /<table>/i, desc: 'Тег table' }, 
+                { regex: /<th\s+[^>]*colspan\s*=\s*["']2["'][^>]*>/i, desc: 'Заголовок с colspan="2"' }, 
+                { regex: /Расписание/i, desc: 'Текст "Расписание"' }
+            ],
+            5: [ 
+                { regex: /<h1\b/i, desc: 'Заголовок h1' }, 
+                { regex: /<ul>/i, desc: 'Маркированный список' }, 
+                { regex: /<li>/i, desc: 'Элементы списка' }, 
+                { regex: /<table>/i, desc: 'Таблица' }, 
+                { regex: /<th>/i, desc: 'Заголовки таблицы' }, 
+                { regex: /<tr>/i, desc: 'Строки таблицы' }
+            ]
+        };
+
+        function checkCode(num) {
+            let code = editors[`html${num}`].getValue();
+            let cleanCode = code.replace(/<!--[\s\S]*?-->/g, '');
+            
+            const checkerDiv = document.getElementById(`checker${num}`);
+            const title = checkerDiv.querySelector('.checker-title');
+            checkerDiv.innerHTML = '';
+            checkerDiv.appendChild(title);
+
+            let allPassed = true;
+            checks[num].forEach(check => {
+                const isPresent = check.regex.test(cleanCode);
+                const icon = isPresent ? '✅' : '❌';
+                const className = isPresent ? 'check-pass' : 'check-fail';
+                if (!isPresent) allPassed = false;
+
+                const item = document.createElement('div');
+                item.className = 'check-item';
+                item.innerHTML = `<span class="check-icon ${className}">${icon}</span> ${check.desc}`;
+                checkerDiv.appendChild(item);
+            });
+
+            practiceCompleted[num] = allPassed;
+
+            if (allPassed) {
+                checkerDiv.classList.add('all-pass');
+                const successMsg = document.createElement('div');
+                successMsg.style.color = '#0f5132'; successMsg.style.fontWeight = 'bold'; successMsg.style.marginTop = '10px';
+                successMsg.textContent = '🎉 Задание выполнено! (+2 балла)';
+                checkerDiv.appendChild(successMsg);
+            } else {
+                checkerDiv.classList.remove('all-pass');
+            }
+        }
+
+        // ==========================================
+        // 4. ИТОГОВЫЙ ПОДСЧЕТ ОЦЕНКИ И БЛОКИРОВКА
+        // ==========================================
+        function calculateFinalGrade() {
+            let testScore = 0;
+            const totalTestQuestions = 15;
+            const textAnswers = { 
+                q3: ['<ol>', 'ol'], 
+                q5: ['<table>', 'table'], 
+                q8: ['colspan'], 
+                q12: ['<dt>', 'dt'], 
+                q15: ['<tbody>', 'tbody'] 
+            };
+
+            for (let i = 1; i <= totalTestQuestions; i++) {
+                const qName = `q${i}`; let isCorrect = false;
+                const radio = document.querySelector(`input[name="${qName}"]:checked`);
+                if (radio && radio.value === 'correct') isCorrect = true;
+                const textInput = document.querySelector(`input[name="${qName}"]`);
+                if (textInput && textAnswers[qName]) { if (textAnswers[qName].includes(textInput.value.trim().toLowerCase())) isCorrect = true; }
+                if (isCorrect) testScore++;
+            }
+
+            let practiceScore = 0;
+            for (let i = 1; i <= 5; i++) {
+                if (practiceCompleted[i]) {
+                    practiceScore += 2;
+                }
+            }
+
+            const totalScore = testScore + practiceScore;
+            const maxScore = totalTestQuestions + 10;
+            const percentage = Math.round((totalScore / maxScore) * 100);
+
+            let grade = 2; let message = "Вам нужно внимательно повторить теорию и переделать задания."; let color = "#e63946";
+            if (percentage >= 90) { grade = 5; message = "Великолепно! Вы отлично усвоили материал урока."; color = "#2ec4b6"; }
+            else if (percentage >= 70) { grade = 4; message = "Хороший результат! Но есть небольшие пробелы, которые стоит повторить."; color = "#4361ee"; }
+            else if (percentage >= 50) { grade = 3; message = "Удовлетворительно. Рекомендуется пройти практические задания еще раз."; color = "#ff9f1c"; }
+
+            const form = document.getElementById('quizForm');
+            const inputs = form.querySelectorAll('input, button');
+            inputs.forEach(input => {
+                input.disabled = true;
+            });
+            form.classList.add('locked');
+            
+            const btn = form.querySelector('button');
+            btn.textContent = '✅ Тест завершен. Изменение ответов запрещено.';
+
+            document.getElementById('practiceScoreDisplay').textContent = `${practiceScore} / 10`;
+            document.getElementById('testScoreDisplay').textContent = `${testScore} / 15`;
+            document.getElementById('totalScoreDisplay').textContent = `${totalScore} / 25`;
+            
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = percentage + '%'; progressFill.textContent = percentage + '%';
+
+            const gradeDisplay = document.getElementById('finalGradeDisplay');
+            gradeDisplay.textContent = `Итоговая оценка: ${grade}`; gradeDisplay.style.color = color;
+            document.getElementById('finalMessage').textContent = message;
+            
+            const resultBox = document.getElementById('finalResult');
+            resultBox.style.display = 'block';
+            resultBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        updatePreview(1); checkCode(1); 
+    </script>
+	<!-- Плавающая кнопка возврата на главную -->
+<a href="index.html" class="back-to-home-btn" title="Вернуться к содержанию курса">
+    🏠 <span class="btn-text">На главную</span>
+</a>
+</body>
+</html>

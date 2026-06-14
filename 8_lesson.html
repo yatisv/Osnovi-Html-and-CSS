@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Урок 8: Семантическая разметка веб-страницы</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --primary: #4361ee; --primary-hover: #3a56d4; --success: #2ec4b6;
+            --warning: #ff9f1c; --danger: #e63946; --text-dark: #212529; --border: #dee2e6;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.7; color: var(--text-dark);  background: radial-gradient(circle, #0e0594 23%, #041439 41%, #012941 60%, #2b0349 89%); }
+        
+        .no-select { user-select: none; -webkit-user-select: none; }
+        .CodeMirror, .input-answer, textarea, pre, code { user-select: text !important; -webkit-user-select: text !important; }
+
+        .header {  background: linear-gradient(135deg, #270471 0%, #05318a 100%); color: white; padding: 30px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .header h1 { font-size: 38px; margin-bottom: 10px; }
+        .header p { font-size: 22px; opacity: 0.9; }
+        .breadcrumb { background: white; padding: 15px 0; border-bottom: 1px solid var(--border); margin-bottom: 30px; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+        
+        .section { background: white; border-radius: 12px; padding: 35px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .section h2 { color: var(--primary); border-left: 5px solid var(--primary); padding-left: 15px; margin-bottom: 25px; font-size: 26px; }
+        .section h3 { color: #343a40; margin: 30px 0 15px; font-size: 20px; border-bottom: 2px solid #f8f9fa; padding-bottom: 10px; }
+        .section h4 { color: #495057; margin: 20px 0 10px; font-size: 18px; }
+        .section p { margin-bottom: 15px; }
+        
+        .tag { background: #e9ecef; color: #d63384; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; display: inline-block; }
+        
+        .analogy-box, .tip-box, .warning-box { padding: 20px; border-radius: 0 8px 8px 0; margin: 20px 0; }
+        .analogy-box { background: #e7f5ff; border-left: 5px solid var(--primary);font-size:18px; }
+        .tip-box { background: #d1e7dd; border-left: 5px solid var(--success); color: #0f5132; font-weight: 500; }
+        .warning-box { background: #f8d7da; border-left: 5px solid var(--danger); }
+        
+        .practice-nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .practice-btn { background: white; border: 2px solid var(--primary); color: var(--primary); padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s; text-align: center; }
+        .practice-btn:hover, .practice-btn.active { background: var(--primary); color: white; transform: translateY(-2px); }
+        
+        .trainer-container { border: 2px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 20px; transition: all 0.3s; background: white; }
+        .trainer-header { background: #343a40; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .task-info { background: #fff3cd; border: 2px solid var(--warning); padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .task-info h3 { color: #856404; margin-bottom: 10px; }
+        
+        .workspace { display: flex; height: 450px; position: relative; }
+        .editors-pane { width: 50%; display: flex; flex-direction: column; border-right: 2px solid #44475a; flex-shrink: 0; }
+        .editor-container { display: flex; flex-direction: column; overflow: hidden; }
+        .editor-label { padding: 8px 12px; background: #44475a; font-size: 12px; font-weight: bold; color: #f8f8f2; text-transform: uppercase; flex-shrink: 0; }
+        .CodeMirror { flex: 1; height: 100% !important; font-size: 14px; }
+        
+        .resizer-v { width: 8px; background: #343a40; cursor: col-resize; display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 10; transition: background 0.2s; }
+        .resizer-v:hover, .resizer-v.active { background: var(--primary); }
+        .resizer-v::after { content: "⋮"; color: #f8f8f2; font-size: 14px; }
+
+        .resizer-h { height: 8px; background: #343a40; cursor: row-resize; display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 10; transition: background 0.2s; }
+        .resizer-h:hover, .resizer-h.active { background: var(--primary); }
+        .resizer-h::after { content: "⋯"; color: #f8f8f2; font-size: 14px; }
+
+        .preview-pane { flex: 1; background: white; min-width: 200px; }
+        iframe { width: 100%; height: 100%; border: none; }
+        
+        .btn { background: var(--success); color: white; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: all 0.3s; }
+        .btn:hover { background: #25a99d; transform: translateY(-1px); }
+        .btn-secondary { background: var(--warning); color: #212529; }
+        .btn-secondary:hover { background: #e8900e; }
+        .btn-check { background: var(--primary); }
+        .btn-check:hover { background: var(--primary-hover); }
+        .btn-fullscreen { background: #6c757d; color: white; }
+        .btn-fullscreen:hover { background: #5a6268; }
+        
+        .code-checker { background: #f8f9fa; padding: 15px 20px; border-top: 1px solid var(--border); transition: background 0.3s; }
+        .code-checker.all-pass { background: #d1e7dd; border-top: 2px solid var(--success); }
+        .checker-title { font-weight: bold; margin-bottom: 12px; color: var(--text-dark); font-size: 15px; }
+        .check-item { display: flex; align-items: center; margin-bottom: 6px; font-size: 14px; }
+        .check-icon { margin-right: 10px; font-weight: bold; width: 20px; text-align: center; flex-shrink: 0; }
+        .check-pass { color: var(--success); }
+        .check-fail { color: var(--danger); }
+
+        .quiz-question { margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid var(--primary); }
+        .quiz-options label { display: block; padding: 12px 15px; margin: 8px 0; background: white; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .quiz-options label:hover { background: #e9ecef; border-color: var(--primary); }
+        .input-answer { width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 6px; font-size: 16px; font-family: monospace; margin-top: 10px; transition: all 0.2s; }
+        
+        #quizForm.locked { opacity: 0.7; pointer-events: none; }
+        #quizForm.locked .btn-final { pointer-events: auto; background-color: #6c757d !important; cursor: not-allowed !important; transform: none !important; }
+        #quizForm.locked .quiz-options label { cursor: not-allowed; background: #e9ecef; border-color: #dee2e6; }
+
+        .final-result-box { margin-top: 30px; padding: 30px; border-radius: 12px; text-align: center;background: radial-gradient(circle, #00c9ff 0%, #9790fe 100%); border: 3px solid var(--primary); display: none; }
+        .score-breakdown { display: flex; justify-content: space-around; margin: 20px 0; flex-wrap: wrap; gap: 15px; }
+        .score-item { background: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); min-width: 140px; }
+        .score-item h4 { color: #6c757d; font-size: 14px; margin-bottom: 5px; }
+        .score-item .value { font-size: 28px; font-weight: bold; color: var(--primary); }
+        .final-grade { font-size: 36px; font-weight: bold; color: var(--success); margin-top: 15px; }
+        
+        .progress-bar { background: var(--border); height: 30px; border-radius: 15px; overflow: hidden; margin: 20px 0; }
+        .progress-fill { background: linear-gradient(90deg, var(--success), var(--primary)); height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; transition: width 0.5s; }
+        .footer { background: #343a40; color: white; text-align: center; padding: 30px 0; margin-top: 50px; }
+        .hide { display: none; }
+
+        .list-example { background: white; border: 2px solid var(--border); border-radius: 8px; padding: 20px; margin: 15px 0; }
+        .list-example h5 { color: var(--primary); margin-bottom: 15px; font-size: 16px; font-weight: bold; }
+
+        .css-preview {
+            background: #ffffff; border: 2px solid var(--border); border-radius: 8px; height: 600px;
+            padding: 25px; margin: 15px 0 25px 0; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .css-preview::before {
+            content: "👁️ Результат в браузере:"; position: absolute; top: -12px; left: 15px;
+            background: var(--primary); color: white; padding: 4px 12px; border-radius: 4px;
+            font-size: 12px; font-weight: bold; letter-spacing: 0.5px;
+        }
+
+        .visual-target {
+            background: #ffffff; border: 2px dashed var(--primary); border-radius: 8px;
+            padding: 20px; margin-top: 15px; text-align: left;
+        }
+        .visual-target-label {
+            display: block; font-size: 12px; font-weight: bold; color: var(--primary);
+            margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        .trainer-container:fullscreen, .trainer-container:-webkit-full-screen {
+            width: 100vw; height: 100vh; border-radius: 0; border: none; display: flex; flex-direction: column; z-index: 9999;
+        }
+        .trainer-container:fullscreen .workspace, .trainer-container:-webkit-full-screen .workspace {
+            flex: 1; height: 100% !important;
+        }
+
+        pre[class*="language-"], code[class*="language-"], pre code {
+            background-color: #282a36 !important; color: #f8f8f2 !important; text-shadow: none !important;
+            border-radius: 8px; border-left: 4px solid var(--primary);
+        }
+        .token, .token.punctuation, .token.operator, .token.entity, .token.url, .language-css .token.string, .style .token.string {
+            background-color: transparent !important;
+        }
+        .token.comment { color: #6272a4 !important; font-style: italic; }
+        .token.property { color: #8be9fd !important; }
+        .token.selector { color: #50fa7b !important; }
+        .token.value { color: #f1fa8c !important; }
+        .token.tag { color: #ff79c6 !important; }
+        
+        @media (max-width: 768px) { 
+            .workspace { flex-direction: column; height: auto; } 
+            .editors-pane, .preview-pane { width: 100% !important; height: 300px; }
+            .resizer-v { width: 100%; height: 8px; cursor: row-resize; }
+            .resizer-v::after { content: "⋯"; }
+            .score-breakdown { flex-direction: column; align-items: center; }
+        }
+		input[type="radio"] {
+  margin-right: 10px;
+  
+}
+/* === ПЛАВАЮЩАЯ КНОПКА "НА ГЛАВНУЮ" === */
+.back-to-home-btn {
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    z-index: 9999; /* Чтобы кнопка была поверх всех элементов */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #e34f26 0%, #1572b6 100%); /* Цвета HTML и CSS */
+    color: white;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    box-shadow: 0 4px 15px rgba(21, 114, 182, 0.4);
+    transition: all 0.3s ease;
+    opacity: 0.9;
+}
+
+.back-to-home-btn:hover {
+    opacity: 1;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(21, 114, 182, 0.6);
+}
+
+/* Адаптация для мобильных устройств: оставляем только иконку */
+@media (max-width: 768px) {
+    .back-to-home-btn {
+        right: 20px;
+        bottom: 20px;
+        padding: 14px;
+        border-radius: 50%;
+    }
+    .back-to-home-btn .btn-text {
+        display: none; /* Скрываем текст на маленьких экранах */
+    }
+}
+    </style>
+</head>
+<body class="no-select">
+
+    <div class="header">
+        <div class="container">
+            <h1>🌐 Основы HTML и CSS</h1>
+            <p>Тема 8: Семантическая разметка веб-страницы</p>
+        </div>
+    </div>
+    
+    <div class="breadcrumb">
+        <div class="container">
+            <a href="#">🏠 Главная</a> / <span>Урок 8: Семантическая разметка</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- ТЕОРИЯ -->
+        <section class="section" id="theory">
+            <h2>📚 1. Теоретический материал</h2>
+            
+            <h3>1. Что такое семантическая разметка?</h3>
+            <p>Раньше веб-страницы собирали из универсальных блоков <span class="tag">&lt;div&gt;</span>, которые не несут никакого смысла. <strong>Семантическая разметка</strong> использует специальные теги, которые говорят браузеру и поисковым системам (Яндекс, Google), <em>какую роль</em> играет содержимое.</p>
+            
+            <div class="analogy-box">
+                <h4>💡 Аналогия: Планировка дома</h4>
+                <p>Вместо того чтобы называть все комнаты просто "Комната 1", "Комната 2" (как <code><b>&lt;div&gt;</b></code>), мы даем им понятные имена: "Кухня" (<code><b>&lt;header&gt;</b></code>), "Гостиная" (<code><b>&lt;main&gt;</b></code>), "Кладовка" (<code><b>&lt;aside&gt;</b></code>). Это помогает гостям (и поисковикам) сразу понять, где что находится.</p>
+            </div>
+
+            <h3>2. Основные семантические теги HTML5</h3>
+            <ul>
+                <li><span class="tag">&lt;header&gt;</span> — "шапка" сайта или раздела (логотип, главный заголовок).</li>
+                <li><span class="tag">&lt;nav&gt;</span> — блок с основными навигационными ссылками (меню).</li>
+                <li><span class="tag">&lt;main&gt;</span> — основное, уникальное содержимое страницы (должен быть только один на странице).</li>
+                <li><span class="tag">&lt;section&gt;</span> — смысловой раздел документа (например, "О нас", "Контакты").</li>
+                <li><span class="tag">&lt;article&gt;</span> — независимый, самодостаточный контент (статья в блоге, новость, комментарий).</li>
+                <li><span class="tag">&lt;aside&gt;</span> — боковая панель или дополнительная информация, косвенно связанная с основным контентом.</li>
+                <li><span class="tag">&lt;footer&gt;</span> — "подвал" сайта (копирайт, контакты, ссылки на соцсети).</li>
+            </ul>
+
+            <div class="list-example">
+                <h5>🏗️ Пример полной структуры страницы (все теги вместе):</h5>
+                <div class="css-preview"><b>
+                    <div style="font-family: sans-serif; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; font-size: 13px;">
+                        <header style="background: #4361ee; color: white; padding: 10px; text-align: center;height: 110px;">
+                            &lt;header&gt; Шапка сайта
+                            <nav style="background: #3b56d4; padding: 5px; margin-top: 5px; border-radius: 4px; font-size: 12px;height: 50px;">&lt;nav&gt; Меню (Главная, О нас, Контакты)</nav>
+                        </header>
+                        <div style="display: flex; min-height: 150px;">
+                            <main style="flex: 3; padding: 15px; background: #f8f9fa;height: 350px;">
+                                &lt;main&gt; Основное содержимое
+                                <section style="background: white; padding: 10px; margin-top: 10px; border-radius: 4px; border-left: 3px solid #4361ee;height: 230px;">
+                                    &lt;section&gt; Смысловой раздел
+                                    <article style="padding: 5px; font-size: 12px;height: 120px;">&lt;article&gt; Конкретная статья или пост</article>
+                                </section>
+                            </main>
+                            <aside style="flex: 1; padding: 15px; background: #fff3cd; border-left: 1px solid #ccc;">
+                                &lt;aside&gt; Боковая панель
+                            </aside>
+                        </div>
+                        <footer style="background: #343a40; color: white; padding: 10px; text-align: center; font-size: 12px;height: 80px;">
+                            &lt;footer&gt; Подвал сайта
+                        </footer></b>
+                    </div>
+                </div>
+                <pre style="height:400px"><code class="language-html">&lt;body&gt;
+    &lt;header&gt;                                                     /* -- шапка сайта --   */
+        &lt;h1&gt;Название сайта&lt;/h1&gt;
+        &lt;nav&gt;                                                    */ -- раздел для меню --   /*
+            &lt;ul&gt;
+                &lt;li&gt;&lt;a href="#"&gt;Главная&lt;/a&gt;&lt;/li&gt;
+                &lt;li&gt;&lt;a href="#"&gt;О нас&lt;/a&gt;&lt;/li&gt;
+            &lt;/ul&gt;
+        &lt;/nav&gt;
+    &lt;/header&gt;   
+    &lt;main&gt;                                                         */ -- основной раздел веб-страницы --   /*             
+        &lt;section&gt;                                                  */ -- дополнительные разделы --   /*
+            &lt;h2&gt;Заголовок раздела&lt;/h2&gt;
+            &lt;article&gt;
+                &lt;h3&gt;Заголовок статьи&lt;/h3&gt;
+                &lt;p&gt;Текст статьи...&lt;/p&gt;
+            &lt;/article&gt;
+        &lt;/section&gt;        
+        &lt;aside&gt;                                                      */ -- боковая панель --   /*
+            &lt;h3&gt;Боковая панель&lt;/h3&gt;
+            &lt;p&gt;Дополнительная информация&lt;/p&gt;
+        &lt;/aside&gt;
+    &lt;/main&gt;    
+    &lt;footer&gt;                                                           */ -- нижняя панель (подвал) --   /*
+        &lt;p&gt;© 2026 Все права защищены&lt;/p&gt;
+    &lt;/footer&gt;
+&lt;/body&gt;</code></pre>
+            </div>
+
+            <h3>3. Введение в Flexbox для разметки</h3>
+            <p>Чтобы расположить блоки (например, основной контент и боковую панель) <strong>рядом друг с другом</strong>, а не друг под другом, используется CSS-свойство <span class="tag">display: flex</span>.</p>
+            
+            <div class="list-example">
+                <h5>Пример расположения main и aside в ряд:</h5>
+                <div class="css-preview1">
+                    <div style="display: flex; gap: 10px; font-family: sans-serif; font-size: 14px;">
+                        <div style="background: #e7f5ff; padding: 15px; border-radius: 6px; flex: 3; border: 2px solid #4361ee;">
+                            <strong>&lt;main&gt;</strong><br>Основной контент занимает больше места.
+                        </div>
+                        <div style="background: #fff3cd; padding: 15px; border-radius: 6px; flex: 1; border: 2px solid #ff9f1c;">
+                            <strong>&lt;aside&gt;</strong><br>Боковая панель.
+                        </div>
+                    </div>
+                </div><br>
+                <pre><code class="language-css">.container {
+    display: flex; /* Включает гибкое расположение в ряд */
+    gap: 10px;     /* Расстояние между блоками */
+}
+main { flex: 3; }  /* Занимает 3 части пространства */
+aside { flex: 1; } /* Занимает 1 часть пространства */</code></pre>
+            </div>
+
+            <div class="tip-box">
+                <h4 style="color: #0a3622;">💡 Почему это важно? (ГЛАВНОЕ)</h4>
+                <ul style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                    <li><strong>1. SEO (Поисковая оптимизация):</strong> Поисковики (Яндекс, Google) лучше понимают структуру вашего сайта и выше его ранжируют.</li>
+                    <li><strong>2. Доступность (Accessibility):</strong> Программы чтения с экрана для незрячих людей могут быстро переходить к &lt;main&gt; или &lt;nav&gt;, игнорируя шапку и подвал.</li>
+                    <li><strong>3. Читаемость кода:</strong> Вам и другим разработчикам будет гораздо проще ориентироваться в коде, чем в бесконечных  контейнерах &lt;div&gt;.</li><li><strong>4. Лёгкость поддержки и масштабирования.</strong> Код становится более читаемым и удобным для разработки. </li><li> <strong>5. Соответствие стандартам.</strong> Семантическая разметка отвечает рекомендациям W3C (World Wide Web Consortium), что повышает совместимость сайта с различными устройствами и браузерами. 
+
+                </ul>
+                <p style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #a3cfbb; font-weight: bold; color: #0a3622; font-size: 15px;">
+                    🚀 ГЛАВНОЕ: Сами по себе семантические теги <strong>не меняют внешний вид</strong> страницы (она выглядит так же, как и с обычными &lt;div&gt;). Они добавляют <strong>смысл</strong> для браузеров и поисковиков. А красивый внешний вид мы всегда задаем отдельно с помощью <strong>CSS</strong>!
+                </p>
+            </div>
+			<div class="warning-box">
+                <h4>⛔ Типичные ошибки и как их исправить</h4>
+                <ol style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Несколько &lt;main&gt; на странице.</strong> Должен быть один. Остальные блоки — &lt;section&gt; или &lt;div&gt;>. </li>
+                    <li><strong>&lt;nav&gt; без списка.</strong> Внутри меню используйте &lt;ul&gt;/&lt;ol&gt; для логичной структуры ссылок.</li>
+					<li><strong>&lt;section&gt; без заголовка.</strong> У раздела должен быть явный заголовок (&lt;h2&gt;/&lt;h3&gt;). Если заголовок не нужен — возможно, достаточно&lt;div&gt;. </li>
+					<li><strong>Путаница article/section. </strong>Самодостаточный контент — &lt;article&gt;, тематическая группа — &lt;section&gt;.  </li>
+                </ol>
+                        </div>
+        </section>
+
+        <!-- ПРАКТИКА -->
+		<section class="section" id="practice">
+        <h2 style="margin: 30px 0 20px; color: var(--primary);">💻 2. Практические работы</h2>
+        <p style="margin-bottom: 20px;">Посмотрите на <strong>визуальный образец</strong> в задании и напишите HTML/CSS код, чтобы добиться точно такого же результата. За каждое выполненное задание вы получите <strong>2 балла</strong>.</p>
+        
+        <div class="practice-nav">
+            <button class="practice-btn active" onclick="showPractice(1)">📝 Работа 1<br><small>Базовая структура</small></button>
+            <button class="practice-btn" onclick="showPractice(2)">📝 Работа 2<br><small>Навигация</small></button>
+            <button class="practice-btn" onclick="showPractice(3)">📝 Работа 3<br><small>Секции и статьи</small></button>
+            <button class="practice-btn" onclick="showPractice(4)">📝 Работа 4<br><small>Flexbox разметка</small></button>
+            <button class="practice-btn" onclick="showPractice(5)">📝 Работа 5<br><small>Творческое</small></button>
+        </div></section>
+
+        <!-- РАБОТА 1 -->
+        <section class="section practice-section" id="practice1">
+            <h2>Практическая работа 1: Базовая семантическая структура</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <p>Создайте базовую структуру страницы, используя теги <code>&lt;header&gt;</code>, <code>&lt;main&gt;</code> и <code>&lt;footer&gt;</code>.</p>
+                <div class="visual-target">
+                    <span class="visual-target-label">Цель:</span>
+                    <div style="font-family: sans-serif; border: 1px solid #ccc; border-radius: 8px; overflow: hidden;">
+                        <div style="background: #4361ee; color: white; padding: 15px; text-align: center;">&lt;header&gt; Шапка сайта</div>
+                        <div style="background: #f8f9fa; padding: 30px; text-align: center; min-height: 80px;">&lt;main&gt; Основное содержимое</div>
+                        <div style="background: #343a40; color: white; padding: 15px; text-align: center;">&lt;footer&gt; Подвал сайта</div>
+                    </div>
+                </div>
+            </div>
+            <div class="trainer-container" id="trainer1">
+                <div class="trainer-header">
+                    <span>🛠️ Редактор кода - Работа 1</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="showHint(1)">💡 Подсказка</button>
+                        <button class="btn btn-check" onclick="checkCode(1)">🔍 Проверить код</button>
+                        <button class="btn" onclick="updatePreview(1)">▶ Запустить</button>
+                        <button class="btn btn-fullscreen" onclick="toggleFullscreen('trainer1')">⛶ На весь экран</button>
+                    </div>
+                </div>
+                <div class="workspace" id="workspace1">
+                    <div class="editors-pane" id="editors-pane1">
+                        <div class="editor-container" id="html-container1" style="height: 50%;">
+                            <div class="editor-label">HTML</div>
+                            <textarea id="html1"></textarea>
+                        </div>
+                        <div class="resizer-h" id="resizer-h1"></div>
+                        <div class="editor-container" id="css-container1" style="flex: 1;">
+                            <div class="editor-label">CSS</div>
+                            <textarea id="css1"></textarea>
+                        </div>
+                    </div>
+                    <div class="resizer-v" id="resizer-v1"></div>
+                    <div class="preview-pane"><iframe id="preview1" sandbox="allow-scripts allow-same-origin"></iframe></div>
+                </div>
+                <div class="code-checker" id="checker1"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint1" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> Просто напишите теги <code>&lt;header&gt;</code>, <code>&lt;main&gt;</code> и <code>&lt;footer&gt;</code> с любым текстом внутри них.</div>
+        </section>
+
+        <!-- РАБОТА 2 -->
+        <section class="section practice-section hide" id="practice2">
+            <h2>Практическая работа 2: Навигационное меню</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <p>Внутри тега <code>&lt;header&gt;</code> добавьте тег <code>&lt;nav&gt;</code>, а внутри него создайте маркированный список <code>&lt;ul&gt;</code> с тремя пунктами <code>&lt;li&gt;</code> (например: Главная, О нас, Контакты).</p>
+                <div class="visual-target">
+                    <span class="visual-target-label">Цель:</span>
+                    <div style="font-family: sans-serif; background: #4361ee; color: white; padding: 15px; border-radius: 8px;">
+                        <h3 style="margin: 0 0 10px 0;">Мой Сайт</h3>
+                        <nav>
+                            <ul style="list-style: none; padding: 0; margin: 0; display: flex; gap: 15px;">
+                                <li>Главная</li>
+                                <li>О нас</li>
+                                <li>Контакты</li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            <div class="trainer-container" id="trainer2">
+                <div class="trainer-header">
+                    <span>🛠️ Редактор кода - Работа 2</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="showHint(2)">💡 Подсказка</button>
+                        <button class="btn btn-check" onclick="checkCode(2)">🔍 Проверить код</button>
+                        <button class="btn" onclick="updatePreview(2)">▶ Запустить</button>
+                        <button class="btn btn-fullscreen" onclick="toggleFullscreen('trainer2')">⛶ На весь экран</button>
+                    </div>
+                </div>
+                <div class="workspace" id="workspace2">
+                    <div class="editors-pane" id="editors-pane2">
+                        <div class="editor-container" id="html-container2" style="height: 50%;">
+                            <div class="editor-label">HTML</div>
+                            <textarea id="html2"></textarea>
+                        </div>
+                        <div class="resizer-h" id="resizer-h2"></div>
+                        <div class="editor-container" id="css-container2" style="flex: 1;">
+                            <div class="editor-label">CSS</div>
+                            <textarea id="css2"></textarea>
+                        </div>
+                    </div>
+                    <div class="resizer-v" id="resizer-v2"></div>
+                    <div class="preview-pane"><iframe id="preview2" sandbox="allow-scripts allow-same-origin"></iframe></div>
+                </div>
+                <div class="code-checker" id="checker2"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint2" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> Структура должна быть такой: <code>&lt;header&gt; &lt;nav&gt; &lt;ul&gt; &lt;li&gt;...&lt;/li&gt; &lt;/ul&gt; &lt;/nav&gt; &lt;/header&gt;</code>.</div>
+        </section>
+
+        <!-- РАБОТА 3 -->
+        <section class="section practice-section hide" id="practice3">
+            <h2>Практическая работа 3: Секции и статьи</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <p>Внутри тега <code>&lt;main&gt;</code> создайте раздел <code>&lt;section&gt;</code>. Внутри этого раздела разместите тег <code>&lt;article&gt;</code> с заголовком <code>&lt;h2&gt;</code> и абзацем <code>&lt;p&gt;</code>.</p>
+                <div class="visual-target">
+                    <span class="visual-target-label">Цель:</span>
+                    <div style="font-family: sans-serif; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #4361ee;">
+                        <h2 style="margin-top: 0;">Моя первая статья</h2>
+                        <p style="color: #555;">Это пример независимого контента, который имеет смысл даже отдельно от остального сайта.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="trainer-container" id="trainer3">
+                <div class="trainer-header">
+                    <span>🛠️ Редактор кода - Работа 3</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="showHint(3)">💡 Подсказка</button>
+                        <button class="btn btn-check" onclick="checkCode(3)">🔍 Проверить код</button>
+                        <button class="btn" onclick="updatePreview(3)">▶ Запустить</button>
+                        <button class="btn btn-fullscreen" onclick="toggleFullscreen('trainer3')">⛶ На весь экран</button>
+                    </div>
+                </div>
+                <div class="workspace" id="workspace3">
+                    <div class="editors-pane" id="editors-pane3">
+                        <div class="editor-container" id="html-container3" style="height: 50%;">
+                            <div class="editor-label">HTML</div>
+                            <textarea id="html3"></textarea>
+                        </div>
+                        <div class="resizer-h" id="resizer-h3"></div>
+                        <div class="editor-container" id="css-container3" style="flex: 1;">
+                            <div class="editor-label">CSS</div>
+                            <textarea id="css3"></textarea>
+                        </div>
+                    </div>
+                    <div class="resizer-v" id="resizer-v3"></div>
+                    <div class="preview-pane"><iframe id="preview3" sandbox="allow-scripts allow-same-origin"></iframe></div>
+                </div>
+                <div class="code-checker" id="checker3"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint3" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> Вложенность должна быть строгой: <code>&lt;main&gt; &lt;section&gt; &lt;article&gt; &lt;h2&gt;...&lt;/h2&gt; &lt;p&gt;...&lt;/p&gt; &lt;/article&gt; &lt;/section&gt; &lt;/main&gt;</code>.</div>
+        </section>
+
+        <!-- РАБОТА 4 -->
+        <section class="section practice-section hide" id="practice4">
+            <h2>Практическая работа 4: Flexbox разметка</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <p>Сделайте так, чтобы <code>&lt;main&gt;</code> и <code>&lt;aside&gt;</code> располагались в ряд. Для этого задайте их общему родителю (например, <code>.layout</code>) свойство <code>display: flex;</code>.</p>
+                <div class="visual-target">
+                    <span class="visual-target-label">Цель:</span>
+                    <div style="display: flex; gap: 10px; font-family: sans-serif; font-size: 14px;">
+                        <div style="background: #e7f5ff; padding: 15px; border-radius: 6px; flex: 3; border: 2px solid #4361ee;">
+                            <strong>&lt;main&gt;</strong><br>Основной контент (широкий).
+                        </div>
+                        <div style="background: #fff3cd; padding: 15px; border-radius: 6px; flex: 1; border: 2px solid #ff9f1c;">
+                            <strong>&lt;aside&gt;</strong><br>Боковая панель (узкая).
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="trainer-container" id="trainer4">
+                <div class="trainer-header">
+                    <span>🛠️ Редактор кода - Работа 4</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="showHint(4)">💡 Подсказка</button>
+                        <button class="btn btn-check" onclick="checkCode(4)">🔍 Проверить код</button>
+                        <button class="btn" onclick="updatePreview(4)">▶ Запустить</button>
+                        <button class="btn btn-fullscreen" onclick="toggleFullscreen('trainer4')">⛶ На весь экран</button>
+                    </div>
+                </div>
+                <div class="workspace" id="workspace4">
+                    <div class="editors-pane" id="editors-pane4">
+                        <div class="editor-container" id="html-container4" style="height: 50%;">
+                            <div class="editor-label">HTML</div>
+                            <textarea id="html4"></textarea>
+                        </div>
+                        <div class="resizer-h" id="resizer-h4"></div>
+                        <div class="editor-container" id="css-container4" style="flex: 1;">
+                            <div class="editor-label">CSS</div>
+                            <textarea id="css4"></textarea>
+                        </div>
+                    </div>
+                    <div class="resizer-v" id="resizer-v4"></div>
+                    <div class="preview-pane"><iframe id="preview4" sandbox="allow-scripts allow-same-origin"></iframe></div>
+                </div>
+                <div class="code-checker" id="checker4"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint4" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> В CSS напишите <code>.layout { display: flex; }</code>. В HTML оберните <code>&lt;main&gt;</code> и <code>&lt;aside&gt;</code> в <code>&lt;div class="layout"&gt;</code>.</div>
+        </section>
+
+        <!-- РАБОТА 5 -->
+        <section class="section practice-section hide" id="practice5">
+            <h2>Практическая работа 5: Творческое задание</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <p>Соберите полноценный макет страницы блога, используя все изученные семантические теги и Flexbox.</p>
+                <div class="visual-target">
+                    <span class="visual-target-label">Пример цели:</span>
+                    <div style="font-family: sans-serif; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; max-width: 500px; margin: 0 auto;">
+                        <header style="background: #4361ee; color: white; padding: 15px; text-align: center;">
+                            <h3 style="margin: 0;">Личный блог</h3>
+                        </header>
+                        <div style="display: flex;">
+                            <main style="flex: 3; padding: 20px; background: #fff;">
+                                <article>
+                                    <h4 style="margin-top: 0;">Мое путешествие</h4>
+                                    <p style="font-size: 14px; color: #555;">Вчера я посетил удивительное место...</p>
+                                </article>
+                            </main>
+                            <aside style="flex: 1; padding: 20px; background: #f8f9fa; border-left: 1px solid #eee;">
+                                <h4 style="margin-top: 0;">Обо мне</h4>
+                                <p style="font-size: 14px; color: #555;">Я учусь создавать сайты.</p>
+                            </aside>
+                        </div>
+                        <footer style="background: #343a40; color: white; padding: 10px; text-align: center; font-size: 12px;">
+                            © 2026 Личный блог
+                        </footer>
+                    </div>
+                </div>
+            </div>
+            <div class="trainer-container" id="trainer5">
+                <div class="trainer-header">
+                    <span>🛠️ Редактор кода - Работа 5</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="showHint(5)">💡 Подсказка</button>
+                        <button class="btn btn-check" onclick="checkCode(5)">🔍 Проверить код</button>
+                        <button class="btn" onclick="updatePreview(5)">▶ Запустить</button>
+                        <button class="btn btn-fullscreen" onclick="toggleFullscreen('trainer5')">⛶ На весь экран</button>
+                    </div>
+                </div>
+                <div class="workspace" id="workspace5">
+                    <div class="editors-pane" id="editors-pane5">
+                        <div class="editor-container" id="html-container5" style="height: 50%;">
+                            <div class="editor-label">HTML</div>
+                            <textarea id="html5"></textarea>
+                        </div>
+                        <div class="resizer-h" id="resizer-h5"></div>
+                        <div class="editor-container" id="css-container5" style="flex: 1;">
+                            <div class="editor-label">CSS</div>
+                            <textarea id="css5"></textarea>
+                        </div>
+                    </div>
+                    <div class="resizer-v" id="resizer-v5"></div>
+                    <div class="preview-pane"><iframe id="preview5" sandbox="allow-scripts allow-same-origin"></iframe></div>
+                </div>
+                <div class="code-checker" id="checker5"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint5" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> Используйте <code>&lt;header&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;article&gt;</code>, <code>&lt;aside&gt;</code>, <code>&lt;footer&gt;</code> и CSS-свойство <code>display: flex;</code> для контейнера с main и aside.</div>
+        </section>
+
+        <!-- ТЕСТ -->
+        <section class="section" id="test">
+            <h2>📝 3. Проверь себя (Тест)</h2>
+            <p style="margin-bottom: 20px;">Ответьте на 15 вопросов. За каждый правильный ответ вы получите <strong>1 балл</strong>. <span style="color: var(--danger); font-weight: bold;">Внимание: после проверки изменить ответы будет невозможно!</span></p><b>
+            <form id="quizForm">
+                <div class="quiz-question"><h3>1. Какой тег используется для верхней части (шапки) сайта?</h3><div class="quiz-options"><label><input type="radio" name="q1" value="wrong">&lt;top&gt;</label><label><input type="radio" name="q1" value="correct">&lt;header&gt;</label><label><input type="radio" name="q1" value="wrong">&lt;head&gt;</label></div></div>
+                <div class="quiz-question"><h3>2. Какой тег предназначен для основного, уникального содержимого страницы?</h3><div class="quiz-options"><label><input type="radio" name="q2" value="wrong">&lt;section&gt;</label><label><input type="radio" name="q2" value="correct">&lt;main&gt;</label><label><input type="radio" name="q2" value="wrong">&lt;body&gt;</label></div></div>
+                <div class="quiz-question"><h3>3. Напишите тег для блока с основными навигационными ссылками.</h3><input type="text" class="input-answer" name="q3" placeholder="Например: <h1>"></div>
+                <div class="quiz-question"><h3>4. Какой тег лучше всего подходит для боковой панели (сайдбара)?</h3><div class="quiz-options"><label><input type="radio" name="q4" value="wrong">&lt;sidebar&gt;</label><label><input type="radio" name="q4" value="correct">&lt;aside&gt;</label><label><input type="radio" name="q4" value="wrong">&lt;side&gt;</label></div></div>
+                <div class="quiz-question"><h3>5. Напишите тег для независимого, самодостаточного контента (например, поста в блоге).</h3><input type="text" class="input-answer" name="q5" placeholder="Например: <h1>"></div>
+                <div class="quiz-question"><h3>6. Что такое семантическая разметка?</h3><div class="quiz-options"><label><input type="radio" name="q6" value="wrong">Использование только тега &lt;div&gt;</label><label><input type="radio" name="q6" value="correct">Использование тегов по их смысловому назначению</label><label><input type="radio" name="q6" value="wrong">Добавление цвета на страницу</label></div></div>
+                <div class="quiz-question"><h3>7. Какое свойство CSS включает гибкое расположение элементов в ряд?</h3><div class="quiz-options"><label><input type="radio" name="q7" value="wrong">display: block;</label><label><input type="radio" name="q7" value="correct">display: flex;</label><label><input type="radio" name="q7" value="wrong">display: inline;</label></div></div>
+                <div class="quiz-question"><h3>8. Напишите значение свойства display для создания флекс-контейнера.</h3><input type="text" class="input-answer" name="q8" placeholder="Например: color"></div>
+                <div class="quiz-question"><h3>9. Какой тег обычно размещается в самом низу страницы (подвал)?</h3><div class="quiz-options"><label><input type="radio" name="q9" value="wrong">&lt;bottom&gt;</label><label><input type="radio" name="q9" value="wrong">&lt;end&gt;</label><label><input type="radio" name="q9" value="correct">&lt;footer&gt;</label></div></div>
+                <div class="quiz-question"><h3>10. Можно ли вкладывать тег &lt;section&gt; внутрь тега &lt;main&gt;?</h3><div class="quiz-options"><label><input type="radio" name="q10" value="correct">Да</label><label><input type="radio" name="q10" value="wrong">Нет</label><label><input type="radio" name="q10" value="wrong">Только с помощью JavaScript</label></div></div>
+                <div class="quiz-question"><h3>11. Какой тег заменяет бессмысленные &lt;div&gt; для группировки тематического контента?</h3><div class="quiz-options"><label><input type="radio" name="q11" value="wrong">&lt;group&gt;</label><label><input type="radio" name="q11" value="correct">&lt;section&gt;</label><label><input type="radio" name="q11" value="wrong">&lt;part&gt;</label></div></div>
+                <div class="quiz-question"><h3>12. Сколько тегов &lt;main&gt; рекомендуется использовать на одной HTML-странице?</h3><input type="text" class="input-answer" name="q12" placeholder="Например: 1"></div>
+                <div class="quiz-question"><h3>13. Как расположатся элементы внутри контейнера с display: flex по умолчанию?</h3><div class="quiz-options"><label><input type="radio" name="q13" value="wrong">Друг под другом (в столбик)</label><label><input type="radio" name="q13" value="correct">В ряд (горизонтально)</label><label><input type="radio" name="q13" value="wrong">В случайном порядке</label></div></div>
+                <div class="quiz-question"><h3>14. Для чего используется тег &lt;nav&gt;?</h3><div class="quiz-options"><label><input type="radio" name="q14" value="wrong">Для вставки видео</label><label><input type="radio" name="q14" value="correct">Для основных навигационных ссылок</label><label><input type="radio" name="q14" value="wrong">Для нижнего колонтитула</label></div></div>
+                <div class="quiz-question"><h3>15. Напишите CSS-свойство, которое задает расстояние между флекс-элементами.</h3><input type="text" class="input-answer" name="q15" placeholder="Например: color"></div></b>
+
+                <button type="button" class="btn btn-final" onclick="calculateFinalGrade()" style="width: 100%; padding: 15px; font-size: 18px; margin-top: 20px;">🏆 Рассчитать итоговую оценку</button>
+            </form>
+            
+            <div id="finalResult" class="final-result-box">
+                <h3 style="color: var(--primary); margin-bottom: 20px;">📊 Результаты выполнения урока</h3>
+                <div class="score-breakdown">
+                    <div class="score-item"><h4>Практические работы</h4><div class="value" id="practiceScoreDisplay">0 / 10</div></div>
+                    <div class="score-item"><h4>Тест</h4><div class="value" id="testScoreDisplay">0 / 15</div></div>
+                    <div class="score-item"><h4>Итого баллов</h4><div class="value" id="totalScoreDisplay">0 / 25</div></div>
+                </div>
+                <div class="progress-bar"><div id="progressFill" class="progress-fill" style="width: 0%">0%</div></div>
+                <div class="final-grade" id="finalGradeDisplay">Оценка: 2</div>
+                <p id="finalMessage" style="margin-top: 15px; color: #6c757d;"></p>
+            </div>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 Информатика 8 класс | Основы HTML и CSS</p>
+            <p>МКОУ Северная средняя школа | Учитель: Ятис В.В.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+
+    <script>
+        // ==========================================
+        // 1. ЗАЩИТА ОТ СПИСЫВАНИЯ
+        // ==========================================
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('copy', event => event.preventDefault());
+        document.addEventListener('cut', event => event.preventDefault());
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i'))) e.preventDefault();
+        });
+
+        // ==========================================
+        // 2. ИНИЦИАЛИЗАЦИЯ РЕДАКТОРОВ И РЕСАЙЗЕРОВ
+        // ==========================================
+        const editors = {};
+        for (let i = 1; i <= 5; i++) {
+            editors[`html${i}`] = CodeMirror.fromTextArea(document.getElementById(`html${i}`), {
+                mode: "htmlmixed", theme: "dracula", lineNumbers: true, autoCloseTags: true, autoCloseBrackets: true
+            });
+            editors[`css${i}`] = CodeMirror.fromTextArea(document.getElementById(`css${i}`), {
+                mode: "css", theme: "dracula", lineNumbers: true, autoCloseBrackets: true
+            });
+            
+            initHorizontalResizer(i);
+            initVerticalResizer(i);
+        }
+
+        function initHorizontalResizer(num) {
+            const resizer = document.getElementById(`resizer-h${num}`);
+            const htmlContainer = document.getElementById(`html-container${num}`);
+            const cssContainer = document.getElementById(`css-container${num}`);
+            const editorsPane = document.getElementById(`editors-pane${num}`);
+            let isResizing = false;
+
+            resizer.addEventListener('mousedown', (e) => {
+                isResizing = true;
+                resizer.classList.add('active');
+                document.body.style.cursor = 'row-resize';
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isResizing) return;
+                const paneRect = editorsPane.getBoundingClientRect();
+                let newHeight = e.clientY - paneRect.top;
+                
+                if (newHeight < 100) newHeight = 100;
+                if (newHeight > paneRect.height - 100) newHeight = paneRect.height - 100;
+                
+                htmlContainer.style.height = `${newHeight}px`;
+                htmlContainer.style.flex = 'none';
+                cssContainer.style.flex = '1';
+                
+                editors[`html${num}`].refresh();
+                editors[`css${num}`].refresh();
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isResizing) {
+                    isResizing = false;
+                    resizer.classList.remove('active');
+                    document.body.style.cursor = 'default';
+                }
+            });
+        }
+
+        function initVerticalResizer(num) {
+            const resizer = document.getElementById(`resizer-v${num}`);
+            const leftPane = document.getElementById(`editors-pane${num}`);
+            const workspace = document.getElementById(`workspace${num}`);
+            let isResizing = false;
+
+            resizer.addEventListener('mousedown', (e) => {
+                isResizing = true;
+                resizer.classList.add('active');
+                document.body.style.cursor = 'col-resize';
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isResizing) return;
+                const containerRect = workspace.getBoundingClientRect();
+                let newWidth = e.clientX - containerRect.left;
+                
+                if (newWidth < 200) newWidth = 200;
+                if (newWidth > containerRect.width - 200) newWidth = containerRect.width - 200;
+                
+                leftPane.style.width = `${newWidth}px`;
+                
+                editors[`html${num}`].refresh();
+                editors[`css${num}`].refresh();
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isResizing) {
+                    isResizing = false;
+                    resizer.classList.remove('active');
+                    document.body.style.cursor = 'default';
+                }
+            });
+        }
+
+        const templates = {
+            html1: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Работа 1</title>\n</head>\n<body>\n    <!-- Создай структуру из header, main и footer -->\n    \n</body>\n</html>`,
+            html2: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Работа 2</title>\n</head>\n<body>\n    <!-- Добавь header, внутри него nav, а внутри ul с тремя li -->\n    \n</body>\n</html>`,
+            html3: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Работа 3</title>\n</head>\n<body>\n    <!-- Внутри main создай section, а внутри него article с h2 и p -->\n    \n</body>\n</html>`,
+            html4: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Работа 4</title>\n</head>\n<body>\n    <!-- Оберни main и aside в div с классом layout -->\n    <div class="layout">\n        <main>Основной контент</main>\n        <aside>Боковая панель</aside>\n    </div>\n</body>\n</html>`,
+            html5: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Работа 5</title>\n</head>\n<body>\n    <!-- Собери макет блога: header, div.layout (с main, article, aside), footer -->\n    \n</body>\n</html>`
+        };
+
+        const cssTemplates = {
+            css1: `/* Добавь базовые стили для наглядности */\nheader, footer { background: #eee; padding: 15px; text-align: center; }\nmain { padding: 20px; min-height: 100px; }\n`,
+            css2: `/* Стили для навигации */\nheader { background: #4361ee; color: white; padding: 15px; }\nul { list-style: none; padding: 0; display: flex; gap: 15px; }\n`,
+            css3: `/* Стили для статьи */\narticle { background: #f8f9fa; padding: 20px; border-left: 4px solid #4361ee; }\n`,
+            css4: `/* Включи Flexbox для класса .layout */\n.layout {\n    \n}\nmain { background: #e7f5ff; padding: 20px; flex: 3; }\naside { background: #fff3cd; padding: 20px; flex: 1; }\n`,
+            css5: `/* Стили для макета блога */\nheader { background: #4361ee; color: white; padding: 15px; text-align: center; }\n.layout { display: flex; }\nmain { flex: 3; padding: 20px; }\naside { flex: 1; padding: 20px; background: #f8f9fa; }\nfooter { background: #343a40; color: white; padding: 10px; text-align: center; }\n`
+        };
+
+        for (let i = 1; i <= 5; i++) {
+            editors[`html${i}`].setValue(templates[`html${i}`]);
+            editors[`css${i}`].setValue(cssTemplates[`css${i}`]);
+        }
+
+        function updatePreview(num) {
+            const html = editors[`html${num}`].getValue();
+            const css = editors[`css${num}`].getValue();
+            const iframe = document.getElementById(`preview${num}`);
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+            doc.open();
+            doc.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${css}</style></head><body>${html}</body></html>`);
+            doc.close();
+        }
+
+        function showHint(num) { document.getElementById(`hint${num}`).classList.toggle('hide'); }
+
+        function showPractice(num) {
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`practice${i}`).classList.add('hide');
+                document.querySelectorAll('.practice-btn')[i-1].classList.remove('active');
+            }
+            document.getElementById(`practice${num}`).classList.remove('hide');
+            document.querySelectorAll('.practice-btn')[num-1].classList.add('active');
+            updatePreview(num);
+            checkCode(num);
+        }
+
+        // ==========================================
+        // 3. ПОЛНОЭКРАННЫЙ РЕЖИМ
+        // ==========================================
+        function toggleFullscreen(containerId) {
+            const container = document.getElementById(containerId);
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(err => console.error(`Ошибка: ${err.message}`));
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            const isFullscreen = !!document.fullscreenElement;
+            document.querySelectorAll('.btn-fullscreen').forEach(btn => {
+                btn.innerHTML = isFullscreen ? '✖ Выйти' : '⛶ На весь экран';
+            });
+            if (isFullscreen && document.fullscreenElement) {
+                const id = document.fullscreenElement.id;
+                const num = id.replace('trainer', '');
+                if (editors[`html${num}`]) {
+                    setTimeout(() => {
+                        editors[`html${num}`].refresh();
+                        editors[`css${num}`].refresh();
+                    }, 150);
+                }
+            }
+        });
+
+        // ==========================================
+        // 4. ПРОВЕРКА ПРАКТИКИ
+        // ==========================================
+        let practiceCompleted = {1: false, 2: false, 3: false, 4: false, 5: false};
+
+        const checks = {
+            1: [ 
+                { regex: /<header>/i, desc: 'Использован тег <header>' }, 
+                { regex: /<main>/i, desc: 'Использован тег <main>' },
+                { regex: /<footer>/i, desc: 'Использован тег <footer>' }
+            ],
+            2: [ 
+                { regex: /<nav>/i, desc: 'Использован тег <nav>' }, 
+                { regex: /<ul>/i, desc: 'Использован список <ul>' },
+                { regex: /<li>/i, desc: 'Использованы элементы <li>' }
+            ],
+            3: [ 
+                { regex: /<section>/i, desc: 'Использован тег <section>' }, 
+                { regex: /<article>/i, desc: 'Использован тег <article>' },
+                { regex: /<h2>/i, desc: 'Добавлен заголовок <h2>' }
+            ],
+            4: [ 
+                { regex: /display\s*:\s*flex/i, desc: 'Использовано свойство display: flex' },
+                { regex: /<aside>/i, desc: 'Использован тег <aside>' }
+            ],
+            5: [ 
+                { regex: /<header>/i, desc: 'Есть <header>' }, 
+                { regex: /<main>/i, desc: 'Есть <main>' },
+                { regex: /<article>/i, desc: 'Есть <article>' },
+                { regex: /<aside>/i, desc: 'Есть <aside>' },
+                { regex: /<footer>/i, desc: 'Есть <footer>' },
+                { regex: /display\s*:\s*flex/i, desc: 'Использован Flexbox' }
+            ]
+        };
+
+        function checkCode(num) {
+            let htmlCode = editors[`html${num}`].getValue();
+            let cssCode = editors[`css${num}`].getValue();
+            let cleanCode = (htmlCode + ' ' + cssCode).replace(/<!--[\s\S]*?-->/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+            
+            const checkerDiv = document.getElementById(`checker${num}`);
+            const title = checkerDiv.querySelector('.checker-title');
+            checkerDiv.innerHTML = '';
+            checkerDiv.appendChild(title);
+
+            let allPassed = true;
+            checks[num].forEach(check => {
+                const isPresent = check.regex.test(cleanCode);
+                const icon = isPresent ? '✅' : '❌';
+                const className = isPresent ? 'check-pass' : 'check-fail';
+                if (!isPresent) allPassed = false;
+
+                const item = document.createElement('div');
+                item.className = 'check-item';
+                item.innerHTML = `<span class="check-icon ${className}">${icon}</span> ${check.desc}`;
+                checkerDiv.appendChild(item);
+            });
+
+            practiceCompleted[num] = allPassed;
+
+            if (allPassed) {
+                checkerDiv.classList.add('all-pass');
+                const successMsg = document.createElement('div');
+                successMsg.style.color = '#0f5132'; successMsg.style.fontWeight = 'bold'; successMsg.style.marginTop = '10px';
+                successMsg.textContent = '🎉 Задание выполнено! (+2 балла)';
+                checkerDiv.appendChild(successMsg);
+            } else {
+                checkerDiv.classList.remove('all-pass');
+            }
+        }
+
+        // ==========================================
+        // 5. ИТОГОВЫЙ ПОДСЧЕТ ОЦЕНКИ И БЛОКИРОВКА
+        // ==========================================
+        function calculateFinalGrade() {
+            let testScore = 0;
+            const totalTestQuestions = 15;
+            const textAnswers = { 
+                q3: ['<nav>', 'nav'], 
+                q5: ['<article>', 'article'], 
+                q8: ['flex'], 
+                q12: ['1', 'один', 'one'], 
+                q15: ['gap', 'gap:'] 
+            };
+
+            for (let i = 1; i <= totalTestQuestions; i++) {
+                const qName = `q${i}`; let isCorrect = false;
+                const radio = document.querySelector(`input[name="${qName}"]:checked`);
+                if (radio && radio.value === 'correct') isCorrect = true;
+                const textInput = document.querySelector(`input[name="${qName}"]`);
+                if (textInput && textAnswers[qName]) { 
+                    if (textAnswers[qName].includes(textInput.value.trim().toLowerCase())) isCorrect = true; 
+                }
+                if (isCorrect) testScore++;
+            }
+
+            let practiceScore = 0;
+            for (let i = 1; i <= 5; i++) {
+                if (practiceCompleted[i]) practiceScore += 2;
+            }
+
+            const totalScore = testScore + practiceScore;
+            const maxScore = totalTestQuestions + 10;
+            const percentage = Math.round((totalScore / maxScore) * 100);
+
+            let grade = 2; let message = "Вам нужно внимательно повторить теорию и переделать задания."; let color = "#e63946";
+            if (percentage >= 90) { grade = 5; message = "Великолепно! Вы отлично усвоили материал урока."; color = "#2ec4b6"; }
+            else if (percentage >= 70) { grade = 4; message = "Хороший результат! Но есть небольшие пробелы, которые стоит повторить."; color = "#4361ee"; }
+            else if (percentage >= 50) { grade = 3; message = "Удовлетворительно. Рекомендуется пройти практические задания еще раз."; color = "#ff9f1c"; }
+
+            const form = document.getElementById('quizForm');
+            const inputs = form.querySelectorAll('input, button');
+            inputs.forEach(input => { input.disabled = true; });
+            form.classList.add('locked');
+            
+            const btn = form.querySelector('button');
+            btn.textContent = '✅ Тест завершен. Изменение ответов запрещено.';
+
+            document.getElementById('practiceScoreDisplay').textContent = `${practiceScore} / 10`;
+            document.getElementById('testScoreDisplay').textContent = `${testScore} / 15`;
+            document.getElementById('totalScoreDisplay').textContent = `${totalScore} / 25`;
+            
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = percentage + '%'; progressFill.textContent = percentage + '%';
+
+            const gradeDisplay = document.getElementById('finalGradeDisplay');
+            gradeDisplay.textContent = `Итоговая оценка: ${grade}`; gradeDisplay.style.color = color;
+            document.getElementById('finalMessage').textContent = message;
+            
+            const resultBox = document.getElementById('finalResult');
+            resultBox.style.display = 'block';
+            resultBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        updatePreview(1); checkCode(1); 
+    </script>
+	<!-- Плавающая кнопка возврата на главную -->
+<a href="index.html" class="back-to-home-btn" title="Вернуться к содержанию курса">
+    🏠 <span class="btn-text">На главную</span>
+</a>
+</body>
+</html>

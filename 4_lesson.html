@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Урок 4: Формы и фреймы в HTML</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --primary: #4361ee; --primary-hover: #3a56d4; --success: #2ec4b6;
+            --warning: #ff9f1c; --danger: #e63946; --text-dark: #212529; --border: #dee2e6;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.7; color: var(--text-dark); background: radial-gradient(circle, #0e0594 23%, #041439 41%, #012941 60%, #2b0349 89%); }
+        
+        .no-select { user-select: none; -webkit-user-select: none; }
+        .CodeMirror, .input-answer, textarea, pre, code { user-select: text !important; -webkit-user-select: text !important; }
+
+        .header { background: linear-gradient(135deg, #270471 0%, #05318a 100%); color: white; padding: 30px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .header h1 { font-size: 38px; margin-bottom: 10px; }
+        .header p { font-size: 20px; opacity: 0.9; }
+        .breadcrumb { background: white; padding: 15px 0; border-bottom: 1px solid var(--border); margin-bottom: 30px; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+        
+        .section { background: white; border-radius: 12px; padding: 35px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .section h2 { color: var(--primary); border-left: 5px solid var(--primary); padding-left: 15px; margin-bottom: 25px; font-size: 26px; }
+        .section h3 { color: #343a40; margin: 30px 0 15px; font-size: 20px; border-bottom: 2px solid #f8f9fa; padding-bottom: 10px; }
+        .section h4 { color: #495057; margin: 20px 0 10px; font-size: 18px; }
+        .section h5 { color: #6c757d; margin: 15px 0 10px; font-size: 16px; }
+        .section p { margin-bottom: 15px; }
+        
+        .tag { background: #e9ecef; color: #d63384; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; display: inline-block; }
+        
+        .analogy-box, .tip-box, .warning-box { padding: 20px; border-radius: 0 8px 8px 0; margin: 20px 0; }
+        .analogy-box { background: #e7f5ff; border-left: 5px solid var(--primary); }
+        .tip-box { background: #d1e7dd; border-left: 5px solid var(--success); }
+        .warning-box { background: #f8d7da; border-left: 5px solid var(--danger); }
+        
+        .practice-nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .practice-btn { background: white; border: 2px solid var(--primary); color: var(--primary); padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s; text-align: center; }
+        .practice-btn:hover, .practice-btn.active { background: var(--primary); color: white; transform: translateY(-2px); }
+        
+        .trainer-container { border: 2px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 20px; transition: all 0.3s; background: white; }
+        .trainer-header { background: #343a40; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .task-info { background: #fff3cd; border: 2px solid var(--warning); padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .task-info h3 { color: #856404; margin-bottom: 10px; }
+        
+        .workspace { display: flex; height: 450px; position: relative; }
+        .editors-pane { width: 50%; display: flex; flex-direction: column; border-right: 2px solid #44475a; flex-shrink: 0; }
+        .editor-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .editor-label { padding: 8px 12px; background: #44475a; font-size: 12px; font-weight: bold; color: #f8f8f2; text-transform: uppercase; }
+        .CodeMirror { flex: 1; height: 100% !important; font-size: 14px; }
+        
+        /* РЕСАЙЗЕР (ПОЛОСА ДЛЯ ИЗМЕНЕНИЯ РАЗМЕРА) */
+        .resizer {
+            width: 8px;
+            background: #343a40;
+            cursor: col-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            z-index: 10;
+            transition: background 0.2s;
+        }
+        .resizer:hover, .resizer.active { background: var(--primary); }
+        .resizer::after { content: "⋮"; color: #f8f8f2; font-size: 14px; }
+
+        .preview-pane { flex: 1; background: white; min-width: 200px; }
+        iframe { width: 100%; height: 100%; border: none; }
+        
+        .btn { background: var(--success); color: white; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: all 0.3s; }
+        .btn:hover { background: #25a99d; transform: translateY(-1px); }
+        .btn-secondary { background: var(--warning); color: #212529; }
+        .btn-secondary:hover { background: #e8900e; }
+        .btn-check { background: var(--primary); }
+        .btn-check:hover { background: var(--primary-hover); }
+        .btn-fullscreen { background: #6c757d; color: white; }
+        .btn-fullscreen:hover { background: #5a6268; }
+        
+        .code-checker { background: #f8f9fa; padding: 15px 20px; border-top: 1px solid var(--border); transition: background 0.3s; }
+        .code-checker.all-pass { background: #d1e7dd; border-top: 2px solid var(--success); }
+        .checker-title { font-weight: bold; margin-bottom: 12px; color: var(--text-dark); font-size: 15px; }
+        .check-item { display: flex; align-items: center; margin-bottom: 6px; font-size: 14px; }
+        .check-icon { margin-right: 10px; font-weight: bold; width: 20px; text-align: center; flex-shrink: 0; }
+        .check-pass { color: var(--success); }
+        .check-fail { color: var(--danger); }
+
+        .quiz-question { margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid var(--primary); }
+        .quiz-options label { display: block; padding: 12px 15px; margin: 8px 0; background: white; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .quiz-options label:hover { background: #e9ecef; border-color: var(--primary); }
+        .input-answer { width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 6px; font-size: 16px; font-family: monospace; margin-top: 10px; transition: all 0.2s; }
+        
+        #quizForm.locked { opacity: 0.7; pointer-events: none; }
+        #quizForm.locked .btn-final { pointer-events: auto; background-color: #6c757d !important; cursor: not-allowed !important; transform: none !important; }
+        #quizForm.locked .quiz-options label { cursor: not-allowed; background: #e9ecef; border-color: #dee2e6; }
+
+        .final-result-box { margin-top: 30px; padding: 30px; border-radius: 12px; text-align: center; background: radial-gradient(circle, #00c9ff 0%, #9790fe 100%); border: 3px solid var(--primary); display: none; }
+        .score-breakdown { display: flex; justify-content: space-around; margin: 20px 0; flex-wrap: wrap; gap: 15px; }
+        .score-item { background: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); min-width: 140px; }
+        .score-item h4 { color: #6c757d; font-size: 14px; margin-bottom: 5px; }
+        .score-item .value { font-size: 28px; font-weight: bold; color: var(--primary); }
+        .final-grade { font-size: 36px; font-weight: bold; color: var(--success); margin-top: 15px; }
+        
+        .progress-bar { background: var(--border); height: 30px; border-radius: 15px; overflow: hidden; margin: 20px 0; }
+        .progress-fill { background: linear-gradient(90deg, var(--success), var(--primary)); height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; transition: width 0.5s; }
+        .footer { background: #343a40; color: white; text-align: center; padding: 30px 0; margin-top: 50px; }
+        .hide { display: none; }
+
+        .list-example { background: white; border: 2px solid var(--border); border-radius: 8px; padding: 20px; margin: 15px 0; }
+        .list-example h5 { color: var(--primary); margin-bottom: 15px; font-size: 16px; font-weight: bold; }
+
+        /* === СТИЛИ ДЛЯ ВИЗУАЛЬНЫХ ПРИМЕРОВ ФОРМ === */
+        .form-preview {
+            background: #ffffff; border: 2px solid var(--border); border-radius: 8px;
+            padding: 25px; margin: 15px 0 25px 0; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .form-preview::before {
+            content: "👁️ Результат в браузере:"; position: absolute; top: -12px; left: 15px;
+            background: var(--primary); color: white; padding: 4px 12px; border-radius: 4px;
+            font-size: 12px; font-weight: bold; letter-spacing: 0.5px;
+        }
+        .form-preview label { display: block; margin-bottom: 5px; font-weight: 600; color: var(--text-dark); font-size: 14px; }
+        .form-preview input[type="text"], .form-preview input[type="password"], .form-preview select, .form-preview textarea {
+            display: block; width: 100%; max-width: 350px; padding: 8px 12px; margin-bottom: 15px;
+            border: 1px solid #ced4da; border-radius: 6px; font-family: inherit; font-size: 14px; transition: border-color 0.2s;
+        }
+        .form-preview input:focus, .form-preview select:focus, .form-preview textarea:focus {
+            outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+        .form-preview button {
+            padding: 8px 20px; background: var(--primary); color: white; border: none; border-radius: 6px;
+            cursor: pointer; font-weight: bold; font-size: 14px; transition: background 0.2s;
+        }
+        .form-preview button:hover { background: var(--primary-hover); }
+        .form-preview p { margin-bottom: 10px; font-weight: 600; }
+        .form-preview input[type="radio"], .form-preview input[type="checkbox"] { margin-right: 8px; transform: scale(1.2); vertical-align: middle; }
+        .form-preview label[for] { display: inline; font-weight: normal; margin-right: 15px; }
+
+        /* === ПОЛНОЭКРАННЫЙ РЕЖИМ === */
+        .trainer-container:fullscreen, .trainer-container:-webkit-full-screen {
+            width: 100vw; height: 100vh; border-radius: 0; border: none; display: flex; flex-direction: column; z-index: 9999;
+        }
+        .trainer-container:fullscreen .workspace, .trainer-container:-webkit-full-screen .workspace {
+            flex: 1; height: 100% !important;
+        }
+
+        /* === ИСПРАВЛЕНИЕ ФОНА ДЛЯ ПОДСВЕТКИ КОДА (PRISM) === */
+        pre[class*="language-"], code[class*="language-"], pre code {
+            background-color: #282a36 !important; color: #f8f8f2 !important; text-shadow: none !important;
+            border-radius: 8px; border-left: 4px solid var(--primary);
+        }
+        .token, .token.punctuation, .token.operator, .token.entity, .token.url, .language-css .token.string, .style .token.string {
+            background-color: transparent !important;
+        }
+        .token.comment { color: #6272a4 !important; font-style: italic; }
+        .token.tag { color: #ff79c6 !important; }
+        .token.attr-name { color: #50fa7b !important; }
+        .token.attr-value { color: #f1fa8c !important; }
+        .token.punctuation { color: #f8f8f2 !important; }
+        
+        @media (max-width: 768px) { 
+            .workspace { flex-direction: column; height: auto; } 
+            .editors-pane, .preview-pane { width: 100% !important; height: 300px; }
+            .resizer { width: 100%; height: 8px; cursor: row-resize; }
+            .resizer::after { content: "⋯"; }
+            .score-breakdown { flex-direction: column; align-items: center; }
+        }
+		.code-block { background: #2F4F4F; color: #f8f8f2; padding: 20px; border-radius: 8px; font-family: monospace; overflow-x: auto; margin: 15px 0; border-left: 4px solid var(--primary); line-height: 1.6; }
+		input[type="radio"] {
+  margin-right: 10px;
+  
+}
+/* === ПЛАВАЮЩАЯ КНОПКА "НА ГЛАВНУЮ" === */
+.back-to-home-btn {
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    z-index: 9999; /* Чтобы кнопка была поверх всех элементов */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #e34f26 0%, #1572b6 100%); /* Цвета HTML и CSS */
+    color: white;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    box-shadow: 0 4px 15px rgba(21, 114, 182, 0.4);
+    transition: all 0.3s ease;
+    opacity: 0.9;
+}
+
+.back-to-home-btn:hover {
+    opacity: 1;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(21, 114, 182, 0.6);
+}
+
+/* Адаптация для мобильных устройств: оставляем только иконку */
+@media (max-width: 768px) {
+    .back-to-home-btn {
+        right: 20px;
+        bottom: 20px;
+        padding: 14px;
+        border-radius: 50%;
+    }
+    .back-to-home-btn .btn-text {
+        display: none; /* Скрываем текст на маленьких экранах */
+    }
+}
+    </style>
+</head>
+<body class="no-select">
+
+    <div class="header">
+        <div class="container">
+            <h1>🌐 Основы HTML</h1>
+            <p>Тема 4: Формы и фреймы</p>
+        </div>
+    </div>
+    
+    <div class="breadcrumb">
+        <div class="container">
+            <a href="#">🏠 Главная</a> / <span>Урок 4: Формы и фреймы</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- ТЕОРИЯ -->
+        <section class="section" id="theory">
+            <h2>📚 1. Теоретический материал</h2>
+            
+            <h3>1. Что такое формы в HTML?</h3>
+            <p>Формы используются для сбора данных от пользователя. Основная информация отправляется на сервер для обработки.</p>
+
+            <h4>Главный тег формы: &lt;form&gt;</h4>
+            <p>Все элементы формы должны находиться внутри тега <span class="tag">&lt;form&gt;</span>. У него есть два важных атрибута:</p>
+            <ul>
+                <li><span class="tag">action</span> — адрес (URL), куда будут отправлены данные.</li>
+                <li><span class="tag">method</span> — метод отправки: <code>GET</code> (данные видны в адресной строке) или <code>POST</code> (данные скрыты).</li>
+            </ul>
+
+            <div class="list-example">
+                <h5>Пример базовой формы:</h5>
+                <div class="form-preview">
+                    <form onsubmit="event.preventDefault(); alert('Демо: Форма отправлена!');">
+                        <label for="username">Имя:</label>
+                        <input type="text" id="username" name="user_name" placeholder="Введите ваше имя">
+                        <button type="submit">Отправить</button>
+                    </form>
+                </div>
+                <pre><code class="language-html">&lt;form action="/submit" method="POST"&gt;
+    &lt;label for="username"&gt;Имя:&lt;/label&gt;
+    &lt;input type="text" id="username" name="user_name" placeholder="Введите ваше имя"&gt;
+    &lt;button type="submit"&gt;Отправить&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+            </div>
+
+            <h4>Основные элементы ввода (&lt;input&gt;)</h4>
+            <p>Тег <span class="tag">&lt;input&gt;</span> является одиночным. Его вид определяется атрибутом <code>type</code>:</p>
+
+            <div class="list-example">
+                <h5>Переключатели (radio) и флажки (checkbox):</h5>
+                <div class="form-preview">
+                    <form onsubmit="event.preventDefault(); alert('Демо: Выбор сохранен!');">
+                        <p>Выберите пол:</p>
+                        <input type="radio" id="male" name="gender" value="male">
+                        <label for="male">Мужской</label>
+                        <input type="radio" id="female" name="gender" value="female">
+                        <label for="female">Женский</label>
+                        <br><br>
+                        <p>Ваши увлечения:</p>
+                        <input type="checkbox" id="sport" name="hobby" value="sport">
+                        <label for="sport">Спорт</label>
+                        <input type="checkbox" id="music" name="hobby" value="music">
+                        <label for="music">Музыка</label>
+                        <br><br>
+                        <button type="submit">Готово</button>
+                    </form>
+                </div>
+                <pre><code class="language-html">&lt;p&gt;Выберите пол:&lt;/p&gt;
+&lt;input type="radio" id="male" name="gender" value="male"&gt;
+&lt;label for="male"&gt;Мужской&lt;/label&gt;
+
+&lt;input type="radio" id="female" name="gender" value="female"&gt;
+&lt;label for="female"&gt;Женский&lt;/label&gt;
+
+&lt;p&gt;Ваши увлечения:&lt;/p&gt;
+&lt;input type="checkbox" id="sport" name="hobby" value="sport"&gt;
+&lt;label for="sport"&gt;Спорт&lt;/label&gt;
+
+&lt;input type="checkbox" id="music" name="hobby" value="music"&gt;
+&lt;label for="music"&gt;Музыка&lt;/label&gt;</code></pre>
+            </div>
+			<p><b>Кнопки &lt;button&gt для управления формой.</b> Управляют отправкой или очисткой формы.</p>
+			
+			<pre><code class="language-html">
+ &lt;!-- Кнопка отправки --&gt;
+ &lt;button type="submit"&gt;Отправить форму&lt;/button&gt;
+&lt;!-- Кнопка сброса --&gt;
+&lt;button type="reset"&gt; Очистить  &lt;/button&gt;
+&lt;!-- Обычная кнопка для JavaScript --&gt;
+&lt;button type="button" onclick="doSomething()"&gt;Выполнить действие&lt;/button&gt;</code></pre>
+<p><b> Результат кода</p>
+<button type="submit">Отправить форму</button>
+<!-- Кнопка сброса -->
+<button type="reset">Очистить</button>
+<!-- Обычная кнопка для JavaScript -->
+<button type="button" onclick="doSomething()">Выполнить действие</button>
+			
+
+            <div class="tip-box">
+                <h4>💡 Зачем нужен тег &lt;label&gt;?</h4>
+                <p>Тег <span class="tag">&lt;label&gt;</span> связывает текст с полем ввода. Если атрибут <code>for</code> у <code>label</code> совпадает с <code>id</code> у <code>input</code>, то при клике на текст курсор автоматически перейдет в поле ввода.</p>
+            </div>
+
+            <div class="list-example">
+                <h5>Пример textarea и select:</h5>
+                <div class="form-preview">
+                    <form onsubmit="event.preventDefault(); alert('Демо: Сообщение отправлено!');">
+                        <label for="city">Город:</label>
+                        <select id="city" name="user_city">
+                            <option value="moscow">Москва</option>
+                            <option value="spb">Санкт-Петербург</option>
+                            <option value="kazan">Казань</option>
+                        </select>
+                        <label for="message">Сообщение:</label>
+                        <textarea id="message" name="user_message" rows="3" placeholder="Напишите что-нибудь..."></textarea>
+                        <button type="submit">Отправить</button>
+                    </form>
+                </div>
+                <pre><code class="language-html">&lt;label for="city"&gt;Город:&lt;/label&gt;
+&lt;select id="city" name="user_city"&gt;
+    &lt;option value="moscow"&gt;Москва&lt;/option&gt;
+    &lt;option value="spb"&gt;Санкт-Петербург&lt;/option&gt;
+    &lt;option value="kazan"&gt;Казань&lt;/option&gt;
+&lt;/select&gt;
+
+&lt;label for="message"&gt;Сообщение:&lt;/label&gt;
+&lt;textarea id="message" name="user_message" rows="3" placeholder="Напишите что-нибудь..."&gt;&lt;/textarea&gt;</code></pre>
+            </div>
+
+            <h3>2. Фреймы в HTML</h3>
+            <p>Фреймы позволяют встроить одну веб-страницу внутрь другой. В современном HTML5 используется универсальный тег <span class="tag">&lt;iframe&gt;</span> (inline frame).</p>
+            <p>Основные атрибуты: <span class="tag">src</span> (адрес), <span class="tag">width</span> и <span class="tag">height</span> (размеры), <span class="tag">title</span> (описание).</p>
+
+            <div class="list-example">
+                <h5>Пример встраивания видео:</h5>
+                <pre><code class="language-html">&lt;iframe 
+    src="вставить ссылку на видео с Rutube" 
+    width="560" 
+    height="315" 
+    title="Rutube video player" 
+    allowfullscreen&gt;
+&lt;/iframe&gt;</code></pre>
+            </div>
+        </section>
+
+        <!-- ПРАКТИКА -->
+		<section class="section" id="practice">
+        <h2 style="margin: 30px 0 20px; color: var(--primary);">💻 2. Практические работы</h2>
+        <p style="margin-bottom: 20px;">Выполните 5 заданий. За каждое полностью выполненное задание вы получите <strong>2 балла</strong>.</p>
+        
+        <div class="practice-nav">
+            <button class="practice-btn active" onclick="showPractice(1)">📝 Работа 1<br><small>Простая форма</small></button>
+            <button class="practice-btn" onclick="showPractice(2)">📝 Работа 2<br><small>Radio и Checkbox</small></button>
+            <button class="practice-btn" onclick="showPractice(3)">📝 Работа 3<br><small>Select и Textarea</small></button>
+            <button class="practice-btn" onclick="showPractice(4)">📝 Работа 4<br><small>Фрейм iframe</small></button>
+            <button class="practice-btn" onclick="showPractice(5)">📝 Работа 5<br><small>Творческое</small></button>
+        </div></section>
+
+        <!-- РАБОТА 1 -->
+        <section class="section practice-section" ">
+            <h2>Практическая работа 1: Простая форма</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <ol style="margin: 15px 0 0 20px;">
+                    <li>Создайте форму с текстовым полем и кнопкой:
+                        <div class="code-block" style="margin-top: 10px; font-size: 16px;">
+						<form action="/send" method="POST">
+    <label for="name">Имя:</label><br>
+    <input type="text" id="name" name="user_name"><br>
+    <button type="submit">Отправить</button>
+</form></div>
+                    </li>
+                </ol>
+            </div>
+            <div class="trainer-container" id="trainer1">
+                <div class="trainer-header">
+                    <span>🛠️ Редактор кода - Работа 1</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="showHint(1)">💡 Подсказка</button>
+                        <button class="btn btn-check" onclick="checkCode(1)">🔍 Проверить код</button>
+                        <button class="btn" onclick="updatePreview(1)">▶ Запустить</button>
+                        <button class="btn btn-fullscreen" onclick="toggleFullscreen('trainer1')">⛶ На весь экран</button>
+                    </div>
+                </div>
+                <div class="workspace" id="workspace1">
+                    <div class="editors-pane" id="editors-pane1">
+                        <div class="editor-container"><div class="editor-label">HTML</div><textarea id="html1"></textarea></div>
+                        <div class="editor-container"><div class="editor-label">CSS</div><textarea id="css1"></textarea></div>
+                    </div>
+                    <div class="resizer" id="resizer1"></div>
+                    <div class="preview-pane"><iframe id="preview1" sandbox="allow-scripts allow-same-origin"></iframe></div>
+                </div>
+                <div class="code-checker" id="checker1"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint1" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> Скопируйте код точно, соблюдая атрибуты type, id и name.</div>
+        </section>
+
+        <!-- РАБОТА 2 -->
+        <section class="section practice-section hide" id="practice2">
+            <h2>Практическая работа 2: Переключатели и флажки</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <ol style="margin: 15px 0 0 20px;">
+                    <li>Создайте форму с выбором пола (radio) и кнопкой отправки:
+                        <div class="code-block" style="margin-top: 10px; font-size: 17px;">
+						<form>
+    <p>Выберите пол:</p>
+    <input type="radio" id="m" name="gender" value="male">
+    <label for="m">Мужской</label><br>
+    <input type="radio" id="f" name="gender" value="female">
+    <label for="f">Женский</label><br>
+    
+    <button type="submit">Готово</button>
+</form></div>
+                    </li>
+                </ol>
+            </div>
+            <div class="trainer-container" id="trainer2">
+                <div class="trainer-header">
+                    <span>🛠️ Редактор кода - Работа 2</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="showHint(2)">💡 Подсказка</button>
+                        <button class="btn btn-check" onclick="checkCode(2)">🔍 Проверить код</button>
+                        <button class="btn" onclick="updatePreview(2)">▶ Запустить</button>
+                        <button class="btn btn-fullscreen" onclick="toggleFullscreen('trainer2')">⛶ На весь экран</button>
+                    </div>
+                </div>
+                <div class="workspace" id="workspace2">
+                    <div class="editors-pane" id="editors-pane2">
+                        <div class="editor-container"><div class="editor-label">HTML</div><textarea id="html2"></textarea></div>
+                        <div class="editor-container"><div class="editor-label">CSS</div><textarea id="css2"></textarea></div>
+                    </div>
+                    <div class="resizer" id="resizer2"></div>
+                    <div class="preview-pane"><iframe id="preview2" sandbox="allow-scripts allow-same-origin"></iframe></div>
+                </div>
+                <div class="code-checker" id="checker2"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint2" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> У радиокнопок с одинаковым выбором должен быть одинаковый атрибут <code>name</code>.</div>
+        </section>
+
+        <!-- РАБОТА 3 -->
+        <section class="section practice-section hide" id="practice3">
+            <h2>Практическая работа 3: Выпадающий список и текстовая область</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <ol style="margin: 15px 0 0 20px;">
+                    <li>Создайте форму с выпадающим списком и многострочным полем:
+                        <div class="code-block" style="margin-top: 10px; font-size: 17px;">
+						<form>
+    <label for="city">Город:</label>
+    <select id="city" name="user_city">
+        <option value="moscow">Москва</option>
+        <option value="spb">Санкт-Петербург</option>
+    </select>
+    <br>
+    <label for="msg">Сообщение:</label><br>
+    <textarea id="msg" name="user_message" rows="3"></textarea>
+    <br>
+    <button type="submit">Отправить</button>
+</form></div>
+                    </li>
+                </ol>
+            </div>
+            <div class="trainer-container" id="trainer3">
+                <div class="trainer-header">
+                    <span>🛠️ Редактор кода - Работа 3</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="showHint(3)">💡 Подсказка</button>
+                        <button class="btn btn-check" onclick="checkCode(3)">🔍 Проверить код</button>
+                        <button class="btn" onclick="updatePreview(3)">▶ Запустить</button>
+                        <button class="btn btn-fullscreen" onclick="toggleFullscreen('trainer3')">⛶ На весь экран</button>
+                    </div>
+                </div>
+                <div class="workspace" id="workspace3">
+                    <div class="editors-pane" id="editors-pane3">
+                        <div class="editor-container"><div class="editor-label">HTML</div><textarea id="html3"></textarea></div>
+                        <div class="editor-container"><div class="editor-label">CSS</div><textarea id="css3"></textarea></div>
+                    </div>
+                    <div class="resizer" id="resizer3"></div>
+                    <div class="preview-pane"><iframe id="preview3" sandbox="allow-scripts allow-same-origin"></iframe></div>
+                </div>
+                <div class="code-checker" id="checker3"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint3" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> Тег <code>&lt;option&gt;</code> всегда вкладывается внутрь тега <code>&lt;select&gt;</code>.</div>
+        </section>
+
+        <!-- РАБОТА 4 -->
+        <section class="section practice-section hide" id="practice4">
+            <h2>Практическая работа 4: Встраивание фрейма</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <ol style="margin: 15px 0 0 20px;">
+                    <li>Вставьте фрейм с видео или картой подобрать размеры чтобы видео вмещалось в iframe:
+                        <pre><code class="language-html">
+						&lt;h2&gt;Моё любимое видео&lt;/h2&gt;
+&lt;iframe 
+    src="вставить ссылку на видео с Rutube или VKvideo" 
+    width="400" 
+    height="250" 
+    title="Видео"&gt;
+&lt;/iframe&gt;</code></pre>
+                    </li>
+                </ol>
+            </div>
+            <div class="trainer-container" id="trainer4">
+                <div class="trainer-header">
+                    <span>🛠️ Редактор кода - Работа 4</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="showHint(4)">💡 Подсказка</button>
+                        <button class="btn btn-check" onclick="checkCode(4)">🔍 Проверить код</button>
+                        <button class="btn" onclick="updatePreview(4)">▶ Запустить</button>
+                        <button class="btn btn-fullscreen" onclick="toggleFullscreen('trainer4')">⛶ На весь экран</button>
+                    </div>
+                </div>
+                <div class="workspace" id="workspace4">
+                    <div class="editors-pane" id="editors-pane4">
+                        <div class="editor-container"><div class="editor-label">HTML</div><textarea id="html4"></textarea></div>
+                        <div class="editor-container"><div class="editor-label">CSS</div><textarea id="css4"></textarea></div>
+                    </div>
+                    <div class="resizer" id="resizer4"></div>
+                    <div class="preview-pane"><iframe id="preview4" sandbox="allow-scripts allow-same-origin"></iframe></div>
+                </div>
+                <div class="code-checker" id="checker4"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint4" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> Тег <code>&lt;iframe&gt;</code> является парным в HTML5.</div>
+        </section>
+
+        <!-- РАБОТА 5 -->
+        <section class="section practice-section hide" id="practice5">
+            <h2>Практическая работа 5: Творческое задание</h2>
+            <div class="task-info">
+                <h3>📋 Задание:</h3>
+                <p>Создайте страницу "Анкета ученика" с фреймом.</p>
+                <ol style="margin: 15px 0 0 20px;">
+                    <li>Заголовок <span class="tag">&lt;h1&gt;</span> "Анкета"</li>
+                    <li>Форма <span class="tag">&lt;form&gt;</span>, содержащая: текстовое поле (Имя), радио-кнопки (Класс), выпадающий список (Любимый предмет) и кнопку отправки.</li>
+                    <li>Внизу страницы добавьте <span class="tag">&lt;iframe&gt;</span> с картой вашей школы или любым видео.</li>
+                </ol>
+            </div>
+            <div class="trainer-container" id="trainer5">
+                <div class="trainer-header">
+                    <span>🛠️ Редактор кода - Работа 5</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="showHint(5)">💡 Подсказка</button>
+                        <button class="btn btn-check" onclick="checkCode(5)">🔍 Проверить код</button>
+                        <button class="btn" onclick="updatePreview(5)">▶ Запустить</button>
+                        <button class="btn btn-fullscreen" onclick="toggleFullscreen('trainer5')">⛶ На весь экран</button>
+                    </div>
+                </div>
+                <div class="workspace" id="workspace5">
+                    <div class="editors-pane" id="editors-pane5">
+                        <div class="editor-container"><div class="editor-label">HTML</div><textarea id="html5"></textarea></div>
+                        <div class="editor-container"><div class="editor-label">CSS</div><textarea id="css5"></textarea></div>
+                    </div>
+                    <div class="resizer" id="resizer5"></div>
+                    <div class="preview-pane"><iframe id="preview5" sandbox="allow-scripts allow-same-origin"></iframe></div>
+                </div>
+                <div class="code-checker" id="checker5"><div class="checker-title">✅ Проверка задания:</div></div>
+            </div>
+            <div id="hint5" class="tip-box hide" style="margin-top: 15px;"><strong>Подсказка:</strong> Соберите все изученные теги форм в одном месте.</div>
+        </section>
+
+        <!-- ТЕСТ -->
+        <section class="section" id="test">
+            <h2>📝 3. Проверь себя (Тест)</h2>
+            <p style="margin-bottom: 20px;">Ответьте на 15 вопросов. За каждый правильный ответ вы получите <strong>1 балл</strong>. <span style="color: var(--danger); font-weight: bold;">Внимание: после проверки изменить ответы будет невозможно!</span></p>
+            <form id="quizForm">
+                <div class="quiz-question"><h3>1. Какой тег является контейнером для всех элементов формы?</h3><div class="quiz-options"><label><input type="radio" name="q1" value="wrong">&lt;input&gt;</label><label><input type="radio" name="q1" value="correct">&lt;form&gt;</label><label><input type="radio" name="q1" value="wrong">&lt;fieldset&gt;</label></div></div>
+                <div class="quiz-question"><h3>2. Какой атрибут формы определяет, куда будут отправлены данные?</h3><div class="quiz-options"><label><input type="radio" name="q2" value="correct">action</label><label><input type="radio" name="q2" value="wrong">method</label><label><input type="radio" name="q2" value="wrong">target</label></div></div>
+                <div class="quiz-question"><h3>3. Напишите значение атрибута type для поля ввода пароля.</h3><input type="text" class="input-answer" name="q3" placeholder="Например: text"></div>
+                <div class="quiz-question"><h3>4. Какой тег создает многострочное текстовое поле?</h3><div class="quiz-options"><label><input type="radio" name="q4" value="wrong">&lt;input type="long"&gt;</label><label><input type="radio" name="q4" value="correct">&lt;textarea&gt;</label><label><input type="radio" name="q4" value="wrong">&lt;text&gt;</label></div></div>
+                <div class="quiz-question"><h3>5. Напишите тег для создания выпадающего списка.</h3><input type="text" class="input-answer" name="q5" placeholder="Например: <select>"></div>
+                <div class="quiz-question"><h3>6. Какой атрибут связывает текст &lt;label&gt; с полем &lt;input&gt;?</h3><div class="quiz-options"><label><input type="radio" name="q6" value="wrong">link</label><label><input type="radio" name="q6" value="correct">for</label><label><input type="radio" name="q6" value="wrong">connect</label></div></div>
+                <div class="quiz-question"><h3>7. Что позволяет выбрать пользователь в группе radio-кнопок с одинаковым name?</h3><div class="quiz-options"><label><input type="radio" name="q7" value="correct">Только один вариант</label><label><input type="radio" name="q7" value="wrong">Несколько вариантов</label><label><input type="radio" name="q7" value="wrong">Ни одного</label></div></div>
+                <div class="quiz-question"><h3>8. Напишите тег для встраивания внешней веб-страницы или видео.</h3><input type="text" class="input-answer" name="q8" placeholder="Например: <iframe>"></div>
+                <div class="quiz-question"><h3>9. Какой атрибут iframe задает адрес встраиваемого ресурса?</h3><div class="quiz-options"><label><input type="radio" name="q9" value="wrong">href</label><label><input type="radio" name="q9" value="correct">src</label><label><input type="radio" name="q9" value="wrong">link</label></div></div>
+                <div class="quiz-question"><h3>10. Устарел ли тег &lt;frameset&gt; в HTML5?</h3><div class="quiz-options"><label><input type="radio" name="q10" value="correct">Да</label><label><input type="radio" name="q10" value="wrong">Нет</label><label><input type="radio" name="q10" value="wrong">Только в старых браузерах</label></div></div>
+                <div class="quiz-question"><h3>11. Какой метод отправки формы (GET или POST) скрывает данные из адресной строки?</h3><div class="quiz-options"><label><input type="radio" name="q11" value="wrong">GET</label><label><input type="radio" name="q11" value="correct">POST</label><label><input type="radio" name="q11" value="wrong">HIDE</label></div></div>
+                <div class="quiz-question"><h3>12. Напишите атрибут, который задает количество видимых строк в textarea.</h3><input type="text" class="input-answer" name="q12" placeholder="Например: rows"></div>
+                <div class="quiz-question"><h3>13. Какой тип input создает флажок (можно выбрать несколько)?</h3><div class="quiz-options"><label><input type="radio" name="q13" value="wrong">radio</label><label><input type="radio" name="q13" value="correct">checkbox</label><label><input type="radio" name="q13" value="wrong">select</label></div></div>
+                <div class="quiz-question"><h3>14. Что произойдет при нажатии на кнопку с type="submit" внутри формы?</h3><div class="quiz-options"><label><input type="radio" name="q14" value="correct">Данные формы будут отправлены</label><label><input type="radio" name="q14" value="wrong">Форма очистится</label><label><input type="radio" name="q14" value="wrong">Ничего не произойдет</label></div></div>
+                <div class="quiz-question"><h3>15. Напишите тег, который представляет один вариант в выпадающем списке.</h3><input type="text" class="input-answer" name="q15" placeholder="Например: <option>"></div>
+
+                <button type="button" class="btn btn-final" onclick="calculateFinalGrade()" style="width: 100%; padding: 15px; font-size: 18px; margin-top: 20px;">🏆 Рассчитать итоговую оценку</button>
+            </form>
+            
+            <div id="finalResult" class="final-result-box">
+                <h3 style="color: var(--primary); margin-bottom: 20px;">📊 Результаты выполнения урока</h3>
+                <div class="score-breakdown">
+                    <div class="score-item"><h4>Практические работы</h4><div class="value" id="practiceScoreDisplay">0 / 10</div></div>
+                    <div class="score-item"><h4>Тест</h4><div class="value" id="testScoreDisplay">0 / 15</div></div>
+                    <div class="score-item"><h4>Итого баллов</h4><div class="value" id="totalScoreDisplay">0 / 25</div></div>
+                </div>
+                <div class="progress-bar"><div id="progressFill" class="progress-fill" style="width: 0%">0%</div></div>
+                <div class="final-grade" id="finalGradeDisplay">Оценка: 2</div>
+                <p id="finalMessage" style="margin-top: 15px; color: #6c757d;"></p>
+            </div>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 Информатика 8 класс | Основы HTML и CSS</p>
+            <p>МКОУ Северная средняя школа | Учитель: Ятис В.В.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+
+    <script>
+        // ==========================================
+        // 1. ЗАЩИТА ОТ СПИСЫВАНИЯ
+        // ==========================================
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('copy', event => event.preventDefault());
+        document.addEventListener('cut', event => event.preventDefault());
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i'))) e.preventDefault();
+        });
+
+        // ==========================================
+        // 2. ИНИЦИАЛИЗАЦИЯ РЕДАКТОРОВ И РЕСАЙЗЕРОВ
+        // ==========================================
+        const editors = {};
+        for (let i = 1; i <= 5; i++) {
+            editors[`html${i}`] = CodeMirror.fromTextArea(document.getElementById(`html${i}`), {
+                mode: "htmlmixed", theme: "dracula", lineNumbers: true, autoCloseTags: true, autoCloseBrackets: true
+            });
+            editors[`css${i}`] = CodeMirror.fromTextArea(document.getElementById(`css${i}`), {
+                mode: "css", theme: "dracula", lineNumbers: true
+            });
+            
+            // Инициализация ресайзера для каждого тренажера
+            initResizer(i);
+        }
+
+        function initResizer(num) {
+            const resizer = document.getElementById(`resizer${num}`);
+            const leftPane = document.getElementById(`editors-pane${num}`);
+            const workspace = document.getElementById(`workspace${num}`);
+            let isResizing = false;
+
+            resizer.addEventListener('mousedown', (e) => {
+                isResizing = true;
+                resizer.classList.add('active');
+                document.body.style.cursor = 'col-resize';
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isResizing) return;
+                const containerRect = workspace.getBoundingClientRect();
+                let newWidth = e.clientX - containerRect.left;
+                
+                // Ограничения минимальной и максимальной ширины
+                if (newWidth < 200) newWidth = 200;
+                if (newWidth > containerRect.width - 200) newWidth = containerRect.width - 200;
+                
+                leftPane.style.width = `${newWidth}px`;
+                
+                // Обновляем CodeMirror, чтобы он пересчитал размеры
+                editors[`html${num}`].refresh();
+                editors[`css${num}`].refresh();
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isResizing) {
+                    isResizing = false;
+                    resizer.classList.remove('active');
+                    document.body.style.cursor = 'default';
+                }
+            });
+        }
+
+        const templates = {
+            html1: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Простая форма</title>\n</head>\n<body>\n    <!-- Создай форму с action, method, label, input и button -->\n    \n</body>\n</html>`,
+            html2: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Radio и Checkbox</title>\n</head>\n<body>\n    <!-- Создай форму с radio-кнопками и кнопкой отправки -->\n    \n</body>\n</html>`,
+            html3: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Select и Textarea</title>\n</head>\n<body>\n    <!-- Создай форму с select, option, textarea и button -->\n    \n</body>\n</html>`,
+            html4: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Фрейм</title>\n</head>\n<body>\n    <!-- Добавь заголовок h2 и iframe с видео или картой -->\n    \n</body>\n</html>`,
+            html5: `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Анкета</title>\n</head>\n<body>\n    <!-- Создай h1, форму с разными полями ввода и iframe внизу -->\n    \n</body>\n</html>`
+        };
+
+        for (let i = 1; i <= 5; i++) {
+            editors[`html${i}`].setValue(templates[`html${i}`]);
+            editors[`css${i}`].setValue(`body { font-family: Arial, sans-serif; padding: 30px; background-color: #f4f4f9; color: #333; }\nh1, h2 { color: #4361ee; }\ninput, select, textarea { margin: 5px 0; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }\nbutton { padding: 8px 15px; background: #4361ee; color: white; border: none; border-radius: 4px; cursor: pointer; }`);
+        }
+
+        function updatePreview(num) {
+            const html = editors[`html${num}`].getValue();
+            const css = editors[`css${num}`].getValue();
+            const iframe = document.getElementById(`preview${num}`);
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+            doc.open();
+            doc.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${css}</style></head><body>${html}</body></html>`);
+            doc.close();
+        }
+
+        function showHint(num) { document.getElementById(`hint${num}`).classList.toggle('hide'); }
+
+        function showPractice(num) {
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`practice${i}`).classList.add('hide');
+                document.querySelectorAll('.practice-btn')[i-1].classList.remove('active');
+            }
+            document.getElementById(`practice${num}`).classList.remove('hide');
+            document.querySelectorAll('.practice-btn')[num-1].classList.add('active');
+            updatePreview(num);
+            checkCode(num);
+        }
+
+        // ==========================================
+        // 3. ПОЛНОЭКРАННЫЙ РЕЖИМ
+        // ==========================================
+        function toggleFullscreen(containerId) {
+            const container = document.getElementById(containerId);
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(err => {
+                    console.error(`Ошибка полноэкранного режима: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            const isFullscreen = !!document.fullscreenElement;
+            document.querySelectorAll('.btn-fullscreen').forEach(btn => {
+                btn.innerHTML = isFullscreen ? '✖ Выйти' : '⛶ На весь экран';
+            });
+
+            if (isFullscreen && document.fullscreenElement) {
+                const id = document.fullscreenElement.id;
+                const num = id.replace('trainer', '');
+                if (editors[`html${num}`]) {
+                    setTimeout(() => {
+                        editors[`html${num}`].refresh();
+                        editors[`css${num}`].refresh();
+                    }, 150);
+                }
+            }
+        });
+
+        // ==========================================
+        // 4. ПРОВЕРКА ПРАКТИКИ
+        // ==========================================
+        let practiceCompleted = {1: false, 2: false, 3: false, 4: false, 5: false};
+
+        const checks = {
+            1: [ 
+                { regex: /<form\s+[^>]*action\s*=\s*["']\/send["'][^>]*>/i, desc: 'Тег form с action' }, 
+                { regex: /method\s*=\s*["']POST["']/i, desc: 'Атрибут method="POST"' }, 
+                { regex: /<input\s+[^>]*type\s*=\s*["']text["'][^>]*>/i, desc: 'Поле ввода type="text"' }, 
+                { regex: /<button\s+[^>]*type\s*=\s*["']submit["'][^>]*>/i, desc: 'Кнопка type="submit"' }
+            ],
+            2: [ 
+                { regex: /<form>/i, desc: 'Тег form' }, 
+                { regex: /<input\s+[^>]*type\s*=\s*["']radio["'][^>]*>/i, desc: 'Радиокнопка type="radio"' }, 
+                { regex: /name\s*=\s*["']gender["']/i, desc: 'Одинаковый атрибут name' }, 
+                { regex: /<button\s+[^>]*type\s*=\s*["']submit["'][^>]*>/i, desc: 'Кнопка отправки' }
+            ],
+            3: [ 
+                { regex: /<select\s+[^>]*id\s*=\s*["']city["'][^>]*>/i, desc: 'Выпадающий список select' }, 
+                { regex: /<option\s+[^>]*value\s*=\s*["']moscow["'][^>]*>/i, desc: 'Вариант option' }, 
+                { regex: /<textarea\s+[^>]*id\s*=\s*["']msg["'][^>]*>/i, desc: 'Многострочное поле textarea' }, 
+                { regex: /rows\s*=\s*["']3["']/i, desc: 'Атрибут rows' }
+            ],
+            4: [ 
+                { regex: /<h2>\s*Моё любимое видео\s*<\/h2>/i, desc: 'Заголовок h2' }, 
+                { regex: /<iframe\s/i, desc: 'Тег iframe' }, 
+                { regex: /src\s*=\s*["']https:\/\/www\.youtube\.com\/embed\/[^"']+["']/i, desc: 'Атрибут src с YouTube' }, 
+                { regex: /width\s*=\s*["']400["']/i, desc: 'Атрибут width' }, 
+                { regex: /height\s*=\s*["']250["']/i, desc: 'Атрибут height' }
+            ],
+            5: [ 
+                { regex: /<h1>\s*Анкета\s*<\/h1>/i, desc: 'Заголовок h1' }, 
+                { regex: /<form>/i, desc: 'Тег form' }, 
+                { regex: /<input\s+[^>]*type\s*=\s*["']text["'][^>]*>/i, desc: 'Текстовое поле' }, 
+                { regex: /<input\s+[^>]*type\s*=\s*["']radio["'][^>]*>/i, desc: 'Радиокнопка' }, 
+                { regex: /<select>/i, desc: 'Выпадающий список' }, 
+                { regex: /<iframe\s/i, desc: 'Фрейм iframe' }
+            ]
+        };
+
+        function checkCode(num) {
+            let code = editors[`html${num}`].getValue();
+            let cleanCode = code.replace(/<!--[\s\S]*?-->/g, '');
+            
+            const checkerDiv = document.getElementById(`checker${num}`);
+            const title = checkerDiv.querySelector('.checker-title');
+            checkerDiv.innerHTML = '';
+            checkerDiv.appendChild(title);
+
+            let allPassed = true;
+            checks[num].forEach(check => {
+                const isPresent = check.regex.test(cleanCode);
+                const icon = isPresent ? '✅' : '❌';
+                const className = isPresent ? 'check-pass' : 'check-fail';
+                if (!isPresent) allPassed = false;
+
+                const item = document.createElement('div');
+                item.className = 'check-item';
+                item.innerHTML = `<span class="check-icon ${className}">${icon}</span> ${check.desc}`;
+                checkerDiv.appendChild(item);
+            });
+
+            practiceCompleted[num] = allPassed;
+
+            if (allPassed) {
+                checkerDiv.classList.add('all-pass');
+                const successMsg = document.createElement('div');
+                successMsg.style.color = '#0f5132'; successMsg.style.fontWeight = 'bold'; successMsg.style.marginTop = '10px';
+                successMsg.textContent = '🎉 Задание выполнено! (+2 балла)';
+                checkerDiv.appendChild(successMsg);
+            } else {
+                checkerDiv.classList.remove('all-pass');
+            }
+        }
+
+        // ==========================================
+        // 5. ИТОГОВЫЙ ПОДСЧЕТ ОЦЕНКИ И БЛОКИРОВКА
+        // ==========================================
+        function calculateFinalGrade() {
+            let testScore = 0;
+            const totalTestQuestions = 15;
+            const textAnswers = { 
+                q3: ['password'], 
+                q5: ['<select>', 'select'], 
+                q8: ['<iframe>', 'iframe'], 
+                q12: ['rows'], 
+                q15: ['<option>', 'option'] 
+            };
+
+            for (let i = 1; i <= totalTestQuestions; i++) {
+                const qName = `q${i}`; let isCorrect = false;
+                const radio = document.querySelector(`input[name="${qName}"]:checked`);
+                if (radio && radio.value === 'correct') isCorrect = true;
+                const textInput = document.querySelector(`input[name="${qName}"]`);
+                if (textInput && textAnswers[qName]) { if (textAnswers[qName].includes(textInput.value.trim().toLowerCase())) isCorrect = true; }
+                if (isCorrect) testScore++;
+            }
+
+            let practiceScore = 0;
+            for (let i = 1; i <= 5; i++) {
+                if (practiceCompleted[i]) {
+                    practiceScore += 2;
+                }
+            }
+
+            const totalScore = testScore + practiceScore;
+            const maxScore = totalTestQuestions + 10;
+            const percentage = Math.round((totalScore / maxScore) * 100);
+
+            let grade = 2; let message = "Вам нужно внимательно повторить теорию и переделать задания."; let color = "#e63946";
+            if (percentage >= 90) { grade = 5; message = "Великолепно! Вы отлично усвоили материал урока."; color = "#2ec4b6"; }
+            else if (percentage >= 70) { grade = 4; message = "Хороший результат! Но есть небольшие пробелы, которые стоит повторить."; color = "#4361ee"; }
+            else if (percentage >= 50) { grade = 3; message = "Удовлетворительно. Рекомендуется пройти практические задания еще раз."; color = "#ff9f1c"; }
+
+            const form = document.getElementById('quizForm');
+            const inputs = form.querySelectorAll('input, button');
+            inputs.forEach(input => { input.disabled = true; });
+            form.classList.add('locked');
+            
+            const btn = form.querySelector('button');
+            btn.textContent = '✅ Тест завершен. Изменение ответов запрещено.';
+
+            document.getElementById('practiceScoreDisplay').textContent = `${practiceScore} / 10`;
+            document.getElementById('testScoreDisplay').textContent = `${testScore} / 15`;
+            document.getElementById('totalScoreDisplay').textContent = `${totalScore} / 25`;
+            
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = percentage + '%'; progressFill.textContent = percentage + '%';
+
+            const gradeDisplay = document.getElementById('finalGradeDisplay');
+            gradeDisplay.textContent = `Итоговая оценка: ${grade}`; gradeDisplay.style.color = color;
+            document.getElementById('finalMessage').textContent = message;
+            
+            const resultBox = document.getElementById('finalResult');
+            resultBox.style.display = 'block';
+            resultBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        updatePreview(1); checkCode(1); 
+    </script>
+	<!-- Плавающая кнопка возврата на главную -->
+<a href="index.html" class="back-to-home-btn" title="Вернуться к содержанию курса">
+    🏠 <span class="btn-text">На главную</span>
+</a>
+</body>
+</html>
